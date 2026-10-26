@@ -1,0 +1,21 @@
+{
+ "batch": "style_v2",
+ "originals": "docs/art/source/style_v2",
+ "defaults": {
+  "variants": 1
+ },
+ "jobs": [
+  {
+   "id": "harmonion_dark",
+   "kind": "illustration",
+   "style": "Style: a flat, extremely minimalist product illustration of a wide Eurorack synthesizer module front panel, calm and functional like precise lab instrumentation: matte neutral graphite aluminium panel #26272A, crisp thin light-grey outlines grouping sections, almost no decoration, no gradients across the panel, no ornaments, no textures, no brass, no wood. Palette: graphite #26272A, plate #2E3033, outline grey #565960, off-white #E9E7E1, mid grey #9A9CA2; exactly one accent colour warm amber #FFB347 used only for lit buttons, tiny LEDs and the display text.",
+   "subject": "Subject: the complete front panel of a wide Eurorack module, 42 HP wide (213 mm) and 128.5 mm tall, seen perfectly straight on, landscape orientation, the panel filling the whole image with no rack, no wall and no hands around it. Left: a tall rounded-rectangle outlined section holding a neat grid of black round jacks with thin silver rings and tiny amber LED dots, separated by hairlines. Centre: two large black knobs with thin white pointers at the top, a small dark display with thin amber text-like marks and no readable letters, four smaller black knobs below, and two rows of small flat dark-grey round buttons, two of them lit amber. Right: five thin-outlined rounded rectangle sections, each with a small flat header tab (blank, no letters) sitting on its top outline, each holding a neat grid of flat round dark-grey buttons, most unlit and a few lit warm amber, and a few black knobs. Strict grid alignment, generous spacing, all labels are tiny blank short lines, no letters visible."
+  },
+  {
+   "id": "harmonion_light",
+   "kind": "illustration",
+   "style": "Style: a flat, extremely minimalist product illustration of a wide Eurorack synthesizer module front panel, calm and functional like precise lab instrumentation: matte warm light-grey aluminium panel #DAD7CF, crisp thin dark outlines grouping sections, almost no decoration, no gradients across the panel, no ornaments, no textures, no brass, no wood. Palette: warm light grey #DAD7CF, plate #E6E3DC, ink #1C1D20, outline grey #8C8A84, white #F6F4EF; exactly one accent colour warm amber #E8960C used only for lit buttons, tiny LEDs and the display text.",
+   "subject": "Subject: the complete front panel of a wide Eurorack module, 42 HP wide (213 mm) and 128.5 mm tall, seen perfectly straight on, landscape orientation, the panel filling the whole image with no rack, no wall and no hands around it. Left: a tall rounded-rectangle outlined section holding a neat grid of black round jacks with thin silver rings and tiny amber LED dots, separated by hairlines. Centre: two large black knobs with thin white pointers at the top, a small dark display with thin amber text-like marks and no readable letters, four smaller black knobs below, and two rows of small flat white round buttons, two of them lit amber. Right: five thin-outlined rounded rectangle sections, each with a small flat header tab (blank, no letters) sitting on its top outline, each holding a neat grid of flat white round buttons, most unlit and a few lit warm amber, and a few black knobs. Strict grid alignment, generous spacing, all labels are tiny blank short lines, no letters visible."
+  }
+ ]
+}

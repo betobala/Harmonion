@@ -1,0 +1,21 @@
+{
+ "batch": "style_v1",
+ "originals": "docs/art/source/style_v1",
+ "defaults": {
+  "style": "Style: a flat orthographic product illustration of a luxurious vintage-inspired Eurorack synthesizer module in the spirit of a harmonium or pipe-organ console: deep warm ebony-brown anodised panel, polished brass and ivory details, fine engraved double hairline brass borders, art-deco arches and notched corners, music-staff line ornaments, subtle realistic metal shading on knobs, buttons and jacks only. Palette: ebony #1B1613, walnut #2A1F1A, oxblood #4A1D2A, brass #C8A24A, bright brass #EBD08A, ivory #F2E8D0, verdigris #3F9C8F. Avoid blue panels, avoid neon, avoid cold greys.",
+  "variants": 1
+ },
+ "jobs": [
+  {
+   "id": "harmonion_panel",
+   "kind": "illustration",
+   "variants": 2,
+   "subject": "Subject: the complete front panel of a wide Eurorack module, 42 HP wide (213 mm) and 128.5 mm tall, seen perfectly straight on, landscape orientation, the panel filling the whole image with no rack, no wall and no hands around it. Left: a recessed jack field with rows of round black jacks with brass nut rings and tiny glowing amber LEDs, divided by thin brass lines. Centre: two large brass-capped knobs with ivory pointers at the top, a small dark display screen with a warm amber glowing line of note shapes, four more brass knobs below, and a small grid of round ivory buttons. Right: five bordered sections framed with double hairline brass rules, each with a brass arch-shaped header cartouche (blank, no letters) and grids of round ivory buttons with brass bezels, each button with a small coloured ring, one of eight harmonic colours (gold, rose, verdigris, violet, sky blue, moss green, orange, pearl) according to its row; a few brass knobs. Decorative five-line music staff ornaments between sections. No letters visible; all labels are tiny blank shapes."
+  },
+  {
+   "id": "harmonion_parts",
+   "kind": "illustration",
+   "subject": "Subject: a flat component sheet on a plain dark ebony-brown background, arranged in a neat evenly spaced grid, large straight-on views of: one brass-capped knob with fine knurled edge and an ivory pointer line, one round ivory button with a brass bezel, one round jack socket with a brass nut ring, six small round LEDs glowing softly in amber and green, one small display bezel with a dark screen and a warm amber glowing line of note shapes, a row of eight small colour rings (gold, rose, verdigris, violet, sky blue, moss green, orange, pearl), one arch-shaped brass header cartouche with no letters, and one five-line music staff divider ornament in brass. No labels."
+  }
+ ]
+}

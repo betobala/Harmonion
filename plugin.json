@@ -1,0 +1,23 @@
+{
+  "slug": "Harmonion",
+  "name": "Harmonion",
+  "version": "2.0.0",
+  "license": "GPL-3.0-or-later",
+  "brand": "Harmonion",
+  "author": "Beto",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Harmonion",
+      "name": "Harmonion",
+      "description": "Harmonic CV processor: three quantizers, four-voice chord generator, arpeggiator and chord progression sequencer sharing one harmony",
+      "tags": ["Quantizer", "Arpeggiator", "Sequencer", "Polyphonic"]
+    }
+  ]
+}
