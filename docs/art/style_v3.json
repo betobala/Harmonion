@@ -5,7 +5,6 @@
   "variants": 2,
   "style": "Style: a flat, high-contrast product illustration of a wide Eurorack module front panel, drawn in the visual language of the attached reference: warm light-grey panel #E4E2DD, bold uniform black outlines about 2 px, related controls grouped inside white rounded rectangles with black outlines, large matte black knobs with one thin white pointer line, small black pill-shaped sublabels, thick black label bars, no gradients across the panel, no ornaments, only a soft contact shadow under knobs, buttons and jacks. Palette: light grey #E4E2DD, white #F6F4EF, black #111111, mid grey #8A8A86, exactly one accent colour warm amber #F2A81D used only for lit buttons and tiny LEDs.",
   "inputs": [
-   {"path": "docs/art/source/refs/ref_4ms_ensemble_oscillator.png", "role": "style reference only: copy its line weight, rounded outlined groups, black pill sublabels, big black knobs and black boxes. Do NOT copy its layout, control count, text, logos or colours."}
   ]
  },
  "jobs": [

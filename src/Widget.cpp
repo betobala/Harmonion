@@ -1,6 +1,6 @@
 #include "Harmonion.hpp"
 #include "Theme.hpp"
-#include "Controls4ms.hpp"
+#include "Controls.hpp"
 
 namespace hm {
 
@@ -35,7 +35,7 @@ static const Theme& themeOf(const engine::Module* m) {
 	return themeColors(m ? static_cast<const Harmonion*>(m)->theme : 0);
 }
 
-using FlatBtn = fms::Button;
+using FlatBtn = ctl::Button;
 
 static FlatBtn* makeFlat(Vec pos, Harmonion* module, int paramId, int lightId, float disc) {
 	FlatBtn* b = createParamCentered<FlatBtn>(pos, module, paramId);
@@ -428,9 +428,9 @@ struct HarmonionWidget : ModuleWidget {
 		for (const Jack& j : jacks) {
 			Vec pos = mm2px(Vec(JACK_X[j.col], JACK_Y[j.row]));
 			if (j.output)
-				addOutput(createOutputCentered<fms::Jack>(pos, module, j.id));
+				addOutput(createOutputCentered<ctl::Jack>(pos, module, j.id));
 			else
-				addInput(createInputCentered<fms::Jack>(pos, module, j.id));
+				addInput(createInputCentered<ctl::Jack>(pos, module, j.id));
 			labels->add(JACK_X[j.col], JACK_Y[j.row] + 5.9f, j.label, 1.7f);
 			if (j.light >= 0)
 				addChild(createLightCentered<SmallLight<AmberLight>>(mm2px(Vec(JACK_X[j.col] + 5.2f, JACK_Y[j.row] + 4.2f)), module, j.light));
@@ -451,8 +451,8 @@ struct HarmonionWidget : ModuleWidget {
 		logo->load(30.0f);
 		logo->box.pos = Vec(mm2px(78.7f) - logo->box.size.x / 2, mm2px(3.2f) - logo->box.size.y / 2);
 		addChild(logo);
-		addParam(fms::knob(mm2px(Vec(66.8f, 16.6f)), module, H::ROOT_PARAM, 6.2f));
-		addParam(fms::knob(mm2px(Vec(89.0f, 16.6f)), module, H::DEGREE_PARAM, 6.2f));
+		addParam(ctl::knob(mm2px(Vec(66.8f, 16.6f)), module, H::ROOT_PARAM, 6.2f));
+		addParam(ctl::knob(mm2px(Vec(89.0f, 16.6f)), module, H::DEGREE_PARAM, 6.2f));
 		labels->add(66.8f, 25.0f, "ROOT");
 		labels->add(89.0f, 25.0f, "DEGREE");
 		Display* display = new Display;
@@ -469,7 +469,7 @@ struct HarmonionWidget : ModuleWidget {
 			{66.8f, 79.4f, H::SLEW_PARAM, "SLEW"}, {89.0f, 79.4f, H::PRESET_PARAM, "PRESET"},
 		};
 		for (const auto& k : knobs) {
-			addParam(fms::knob(mm2px(Vec(k.x, k.y)), module, k.id, 4.6f));
+			addParam(ctl::knob(mm2px(Vec(k.x, k.y)), module, k.id, 4.6f));
 			labels->add(k.x, k.y + 8.0f, k.label);
 		}
 		static const char* const smallLabels[12] = {"MENU", "TUNE", "SONG", "OCT", "SEQ", "<", ">", ">/||", "DEL", "-", "+", "ADD"};
@@ -500,8 +500,8 @@ struct HarmonionWidget : ModuleWidget {
 
 		// Assign + gates
 		labels->add(115.3f, 64.1f, "ASSIGN", 1.9f, true);
-		addParam(fms::knob(mm2px(Vec(115.3f, 75.4f)), module, H::POT1_PARAM, 4.6f));
-		addParam(fms::knob(mm2px(Vec(115.3f, 92.4f)), module, H::POT2_PARAM, 4.6f));
+		addParam(ctl::knob(mm2px(Vec(115.3f, 75.4f)), module, H::POT1_PARAM, 4.6f));
+		addParam(ctl::knob(mm2px(Vec(115.3f, 92.4f)), module, H::POT2_PARAM, 4.6f));
 		labels->add(115.3f, 83.4f, "POT 1");
 		labels->add(115.3f, 100.4f, "POT 2");
 		labels->add(115.3f, 104.0f, "GATES", 1.9f, true);
@@ -536,10 +536,10 @@ struct HarmonionWidget : ModuleWidget {
 			addParam(makeFlat(mm2px(Vec(e.x, LOW_Y[3])), module, H::BIG_PARAM + e.b, H::BIG_LIGHT + e.b, 6.2f));
 			labels->add(e.x, LOW_Y[3] + 6.3f, e.label, 1.6f);
 		}
-		addParam(fms::knob(mm2px(Vec(163.6f, 74.6f)), module, H::CHORD_PITCH_PARAM, 4.6f));
-		addParam(fms::knob(mm2px(Vec(163.6f, 91.8f)), module, H::SPREAD_PARAM, 4.6f));
-		addParam(fms::knob(mm2px(Vec(204.8f, 74.6f)), module, H::ARP_PITCH_PARAM, 4.6f));
-		addParam(fms::knob(mm2px(Vec(204.8f, 91.8f)), module, H::RANGE_PARAM, 4.6f));
+		addParam(ctl::knob(mm2px(Vec(163.6f, 74.6f)), module, H::CHORD_PITCH_PARAM, 4.6f));
+		addParam(ctl::knob(mm2px(Vec(163.6f, 91.8f)), module, H::SPREAD_PARAM, 4.6f));
+		addParam(ctl::knob(mm2px(Vec(204.8f, 74.6f)), module, H::ARP_PITCH_PARAM, 4.6f));
+		addParam(ctl::knob(mm2px(Vec(204.8f, 91.8f)), module, H::RANGE_PARAM, 4.6f));
 		labels->add(163.6f, 82.6f, "PITCH");
 		labels->add(163.6f, 99.8f, "SPREAD");
 		labels->add(204.8f, 82.6f, "PITCH");
@@ -612,7 +612,7 @@ struct HarmonionWidget : ModuleWidget {
 
 Model* modelHarmonion = createModel<hm::Harmonion, hm::HarmonionWidget>("Harmonion");
 
-namespace fms {
+namespace ctl {
 const Colors& colors(const engine::Module* m) {
 	static const Colors graphite = {
 		nvgRGB(0x0B, 0x0B, 0x0D), nvgRGB(0x3A, 0x3B, 0x3F), nvgRGB(0xF2, 0xF0, 0xEA), nvgRGB(0xE9, 0xE7, 0xE1),
@@ -627,4 +627,4 @@ const Colors& colors(const engine::Module* m) {
 	int t = m ? static_cast<const hm::Harmonion*>(m)->theme : 0;
 	return t == 1 ? paper : graphite;
 }
-}  // namespace fms
+}  // namespace ctl

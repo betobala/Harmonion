@@ -34,3 +34,7 @@ Rode `build/test.exe` com a pasta do Rack (`libRack.dll`) no `PATH`.
 - **Gates e triggers** saem com 10 V (padrão do VCV) em vez de 5 V.
 - Partes que o manual não detalha (lista completa das escalas dos modos, opções do A/B do canal 1,
   algumas faixas de menu) foram reconstruídas e estão marcadas com `// reconstruído` no código.
+
+## Licença
+
+GPL-3.0-or-later. Veja [LICENSE](LICENSE).

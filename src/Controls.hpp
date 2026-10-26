@@ -1,14 +1,14 @@
 #pragma once
-// Panel controls in the graphic language of docs/art/components_4ms.png:
+// Panel controls in the graphic language of docs/art/components.png:
 //  - Knob: matte black disc, faint scalloped edge, one white pointer, ring of thick dashes around it
 //  - Jack: concentric rings (bevel, white ring, dark ring, black hole)
 //  - Button: flat disc with a thick outline that fills with the accent colour when lit
 //  - Toggle: round bezel with a capsule lever
 // Everything is drawn with NanoVG so each plugin can change colours with its theme.
-// Each plugin defines fms::colors() (see the end of its widget file).
+// Each plugin defines ctl::colors() (see the end of its widget file).
 #include <rack.hpp>
 
-namespace fms {
+namespace ctl {
 using namespace rack;
 
 struct Colors {
@@ -233,4 +233,4 @@ struct Toggle : app::Switch {
 	}
 };
 
-}  // namespace fms
+}  // namespace ctl

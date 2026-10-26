@@ -68,19 +68,19 @@ bloco, com o "H" trabalhado. Aqui o desenho é próprio.
 - **Uso no painel:** 30 mm de largura (altura 3,5 mm), centralizado na coluna do meio, no topo.
   Tamanho mínimo: 24 mm de largura; abaixo disso os nós do H se perdem.
 
-## Controles (linguagem do 4ms)
+## Controles
 
-Os controles do painel seguem a linguagem de controles do 4ms (referência em `docs/art/source/refs/`, folha em
-`docs/art/components_4ms.png`). Estão em `src/Controls4ms.hpp`, desenhados em NanoVG para mudar com o tema.
+Os controles do painel seguem a folha de componentes em
+`docs/art/components.png`. Estão em `src/Controls.hpp`, desenhados em NanoVG para mudar com o tema.
 
 | Controle | Desenho |
 |---|---|
-| **Knob** (`fms::Knob`) | disco preto fosco, contorno ondulado quase invisível, **um risco branco** do centro à borda e um **anel de 15 traços grossos** em volta (a escala). Raios: 6,2 mm (grande), 4,6 mm (médio), 3,9 mm (compacto). |
-| **Jack** (`fms::Jack`) | anéis concêntricos: borda cinza-clara, anel branco, anel escuro e furo preto. Raio 3,3 mm. |
-| **Botão** (`fms::Button`) | disco chato com contorno grosso e brilho suave; aceso, preenche com o acento e ganha um halo. Pode ligar-se a uma luz do módulo. |
-| **Chave** (`fms::Toggle`) | moldura redonda de anéis com alavanca em cápsula; valor 1 = alavanca para cima. |
+| **Knob** (`ctl::Knob`) | disco preto fosco, contorno ondulado quase invisível, **um risco branco** do centro à borda e um **anel de 15 traços grossos** em volta (a escala). Raios: 6,2 mm (grande), 4,6 mm (médio), 3,9 mm (compacto). |
+| **Jack** (`ctl::Jack`) | anéis concêntricos: borda cinza-clara, anel branco, anel escuro e furo preto. Raio 3,3 mm. |
+| **Botão** (`ctl::Button`) | disco chato com contorno grosso e brilho suave; aceso, preenche com o acento e ganha um halo. Pode ligar-se a uma luz do módulo. |
+| **Chave** (`ctl::Toggle`) | moldura redonda de anéis com alavanca em cápsula; valor 1 = alavanca para cima. |
 
-As cores vêm de `fms::colors()`, definida em cada plugin e escolhida pelo tema ativo.
+As cores vêm de `ctl::colors()`, definida em cada plugin e escolhida pelo tema ativo.
 
 ## 4. Tokens para o código (C++)
 
