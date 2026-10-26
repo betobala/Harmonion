@@ -293,6 +293,11 @@ struct Display : TransparentWidget {
 		}
 		else {
 			const Harmony& h = m->frozen ? m->editHarmony : m->harmony;
+			if (!h.scale) {
+				// the engine has not computed a harmony yet (first frames after adding the module)
+				nvgResetScissor(vg);
+				return;
+			}
 			bool flat = preferFlats(h.chordRoot, *h.scale);
 			text(c, 2, 11, 9.5f, noteName(h.keyRoot, flat) + " " + h.modeName(), NVG_ALIGN_LEFT);
 			text(c, 126, 11, 9.5f, h.chordName(), NVG_ALIGN_RIGHT);
