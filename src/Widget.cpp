@@ -2,6 +2,7 @@
 #include "Screen.hpp"
 #include "Theme.hpp"
 #include "Controls.hpp"
+#include "Stencil.hpp"
 
 namespace hm {
 
@@ -21,9 +22,10 @@ static const float LOW_Y[4] = {73.3f, 86.4f, 99.5f, 112.7f};
 static const float SMALL_X[4] = {61.6f, 72.4f, 83.5f, 94.4f};
 static const float SMALL_Y[3] = {95.6f, 105.1f, 114.7f};
 
+// (the name stays; in the betobullet identity the lights are white)
 struct AmberLight : GrayModuleLightWidget {
 	AmberLight() {
-		addBaseColor(nvgRGB(0xff, 0xb3, 0x47));
+		addBaseColor(nvgRGB(0xf4, 0xf4, 0xf2));
 	}
 };
 
@@ -39,30 +41,6 @@ static FlatBtn* makeFlat(Vec pos, Harmonion* module, int paramId, int lightId, f
 	b->discMm = disc;
 	return b;
 }
-
-/** The logotype, one SVG per theme (graphite / paper). */
-struct LogoWidget : TransparentWidget {
-	Harmonion* module = nullptr;
-	std::shared_ptr<window::Svg> svg[2];
-
-	void load(float widthMm) {
-		svg[0] = window::Svg::load(asset::plugin(pluginInstance, "res/logo_graphite.svg"));
-		svg[1] = window::Svg::load(asset::plugin(pluginInstance, "res/logo_paper.svg"));
-		float w = svg[0]->handle->width, h = svg[0]->handle->height;
-		box.size = Vec(mm2px(widthMm), mm2px(widthMm) * h / w);
-	}
-
-	void draw(const DrawArgs& args) override {
-		int i = (module && module->theme == 1) ? 1 : 0;
-		if (!svg[i])
-			return;
-		float sc = box.size.x / svg[i]->handle->width;
-		nvgSave(args.vg);
-		nvgScale(args.vg, sc, sc);
-		window::svgDraw(args.vg, svg[i]->handle);
-		nvgRestore(args.vg);
-	}
-};
 
 /** Panel background, section outlines and tabs. Drawn in code so the theme can change. */
 struct PanelArt : TransparentWidget {
@@ -105,15 +83,9 @@ struct PanelArt : TransparentWidget {
 			{13.5f, 3.4f, 29.0f, 4.4f}, {104.0f, 3.4f, 37.6f, 4.4f}, {145.0f, 3.4f, 37.0f, 4.4f}, {186.0f, 3.4f, 24.4f, 4.4f},
 			{106.6f, 62.0f, 17.4f, 4.2f}, {140.2f, 62.0f, 20.0f, 4.2f}, {181.0f, 62.0f, 22.2f, 4.2f}, {106.6f, 102.0f, 17.4f, 4.0f},
 		};
-		nvgStrokeWidth(vg, mm2px(0.3f));
-		for (const R& r : sections) {
-			nvgBeginPath(vg);
-			nvgRoundedRect(vg, mm2px(r.x), mm2px(r.y), mm2px(r.w), mm2px(r.h), mm2px(1.6f));
-			nvgFillColor(vg, t.plate);
-			nvgFill(vg);
-			nvgStrokeColor(vg, t.outline);
-			nvgStroke(vg);
-		}
+		bb::Ink k = {t.panel, t.ink};
+		for (const R& r : sections)
+			bb::notchedFrame(vg, Rect(Vec(r.x, r.y), Vec(r.w, r.h)), k, 2.4f, 1.6f);
 		// hairline dividers
 		nvgStrokeColor(vg, t.outline);
 		nvgStrokeWidth(vg, mm2px(0.25f));
@@ -131,23 +103,33 @@ struct PanelArt : TransparentWidget {
 		line(vg, 128.8f, 51.2f, 134.0f, 51.2f, true);
 
 		// tabs sit on the top outline of their section
-		nvgStrokeWidth(vg, mm2px(0.3f));
 		for (const R& r : tabs) {
-			nvgBeginPath(vg);
-			nvgRoundedRect(vg, mm2px(r.x), mm2px(r.y), mm2px(r.w), mm2px(r.h), mm2px(1.0f));
-			nvgFillColor(vg, t.plate);
+			bb::chamferPath(vg, Rect(Vec(r.x, r.y), Vec(r.w, r.h)), 1.0f);
+			nvgFillColor(vg, t.panel);
 			nvgFill(vg);
-			nvgStrokeColor(vg, t.outline);
+			nvgStrokeColor(vg, t.ink);
+			nvgStrokeWidth(vg, mm2px(0.5f));
 			nvgStroke(vg);
 		}
 
-		// display frame
+		// display frame, with stencil brackets
 		nvgBeginPath(vg);
-		nvgRoundedRect(vg, mm2px(61.0f), mm2px(29.4f), mm2px(34.2f), mm2px(19.6f), mm2px(1.2f));
+		nvgRect(vg, mm2px(61.0f), mm2px(29.4f), mm2px(34.2f), mm2px(19.6f));
 		nvgFillColor(vg, t.black);
 		nvgFill(vg);
-		nvgStrokeColor(vg, t.outline);
-		nvgStroke(vg);
+		bb::bracketFrame(vg, Rect(Vec(61.0f, 29.4f), Vec(34.2f, 19.6f)), k, 2.6f);
+
+		// the name, in stencil type
+		std::shared_ptr<window::Font> stencil = pluginFont("BlackOpsOne-Regular.ttf");
+		if (stencil) {
+			nvgFontFaceId(vg, stencil->handle);
+			nvgFontSize(vg, mm2px(4.2f));
+			nvgTextLetterSpacing(vg, mm2px(0.3f));
+			nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+			nvgFillColor(vg, t.ink);
+			nvgText(vg, mm2px(78.7f), mm2px(2.9f), "HARMONION", NULL);
+			nvgTextLetterSpacing(vg, 0.f);
+		}
 	}
 };
 
@@ -169,7 +151,8 @@ struct PanelLabels : TransparentWidget {
 
 	void draw(const DrawArgs& args) override {
 		std::shared_ptr<window::Font> font = pluginFont("MartianMono-Label.ttf");
-		if (!font)
+		std::shared_ptr<window::Font> stencil = pluginFont("BlackOpsOne-Regular.ttf");
+		if (!font || !stencil)
 			return;
 		nvgFontFaceId(args.vg, font->handle);
 		nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
@@ -177,6 +160,7 @@ struct PanelLabels : TransparentWidget {
 		for (const Label& l : labels) {
 			nvgFontSize(args.vg, mm2px(l.size) * ((l.header || l.vertical) ? 1.55f : 1.9f));
 			nvgFillColor(args.vg, (l.header || l.size >= 2.4f) ? t.ink : t.grey);
+			nvgFontFaceId(args.vg, l.header ? stencil->handle : font->handle);
 			if (l.vertical) {
 				nvgSave(args.vg);
 				nvgTranslate(args.vg, l.pos.x, l.pos.y);
@@ -466,12 +450,7 @@ struct HarmonionWidget : ModuleWidget {
 		labels->add(52.6f, 97.8f, "GATES", 1.4f, false, true);
 		labels->add(52.6f, 111.3f, "SEQ", 1.4f, false, true);
 
-		// Center column
-		LogoWidget* logo = new LogoWidget;
-		logo->module = module;
-		logo->load(30.0f);
-		logo->box.pos = Vec(mm2px(78.7f) - logo->box.size.x / 2, mm2px(3.2f) - logo->box.size.y / 2);
-		addChild(logo);
+		// Center column (the name is drawn by PanelArt)
 		addParam(ctl::knob(mm2px(Vec(66.8f, 16.6f)), module, H::ROOT_PARAM, 6.2f));
 		addParam(ctl::knob(mm2px(Vec(89.0f, 16.6f)), module, H::DEGREE_PARAM, 6.2f));
 		labels->add(66.8f, 25.0f, "ROOT");
@@ -658,17 +637,8 @@ Model* modelHarmonion = createModel<hm::Harmonion, hm::HarmonionWidget>("Harmoni
 
 namespace ctl {
 const Colors& colors(const engine::Module* m) {
-	static const Colors graphite = {
-		nvgRGB(0x0B, 0x0B, 0x0D), nvgRGB(0x3A, 0x3B, 0x3F), nvgRGB(0xF2, 0xF0, 0xEA), nvgRGB(0xE9, 0xE7, 0xE1),
-		nvgRGB(0xC8, 0xC8, 0xC5), nvgRGB(0xED, 0xED, 0xEA), nvgRGB(0x6C, 0x6D, 0x70), nvgRGB(0x4A, 0x4A, 0x4C), nvgRGB(0x05, 0x05, 0x05),
-		nvgRGB(0x44, 0x46, 0x4B), nvgRGB(0x5A, 0x5C, 0x62), nvgRGB(0xFF, 0xB3, 0x47), nvgRGB(0xFF, 0xD0, 0x8A), nvgRGB(0x0D, 0x0D, 0x0F),
-		nvgRGB(0xF2, 0xF0, 0xEA)};
-	static const Colors paper = {
-		nvgRGB(0x11, 0x11, 0x11), nvgRGB(0x3A, 0x3A, 0x3A), nvgRGB(0xF6, 0xF4, 0xEF), nvgRGB(0x1C, 0x1D, 0x20),
-		nvgRGB(0xD3, 0xD3, 0xD0), nvgRGB(0xF7, 0xF7, 0xF5), nvgRGB(0x8E, 0x8E, 0x8A), nvgRGB(0x5C, 0x5C, 0x5A), nvgRGB(0x05, 0x05, 0x05),
-		nvgRGB(0xF6, 0xF4, 0xEF), nvgRGB(0xFF, 0xFF, 0xFF), nvgRGB(0xE8, 0x96, 0x0C), nvgRGB(0xF5, 0xBC, 0x5A), nvgRGB(0x1C, 0x1D, 0x20),
-		nvgRGB(0xFB, 0xFB, 0xF9)};
+	static const Colors black = bb::controlColors(0), white = bb::controlColors(1);
 	int t = m ? static_cast<const hm::Harmonion*>(m)->theme : 0;
-	return t == 1 ? paper : graphite;
+	return t == 1 ? white : black;
 }
 }  // namespace ctl
