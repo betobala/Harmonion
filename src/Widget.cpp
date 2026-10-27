@@ -22,10 +22,10 @@ static const float LOW_Y[4] = {73.3f, 86.4f, 99.5f, 112.7f};
 static const float SMALL_X[4] = {61.6f, 72.4f, 83.5f, 94.4f};
 static const float SMALL_Y[3] = {95.6f, 105.1f, 114.7f};
 
-// (the name stays; in the betobullet identity the lights are white)
+// (the name stays; in the betobullet identity the lights are the red accent)
 struct AmberLight : GrayModuleLightWidget {
 	AmberLight() {
-		addBaseColor(nvgRGB(0xf4, 0xf4, 0xf2));
+		addBaseColor(nvgRGB(0xe8, 0x2a, 0x2f));
 	}
 };
 
@@ -45,6 +45,7 @@ static FlatBtn* makeFlat(Vec pos, Harmonion* module, int paramId, int lightId, f
 /** Panel background, section outlines and tabs. Drawn in code so the theme can change. */
 struct PanelArt : TransparentWidget {
 	Harmonion* module = nullptr;
+	std::vector<Vec> outputs;  // output jacks (mm), ringed in red
 
 	void line(NVGcontext* vg, float x1, float y1, float x2, float y2, bool dotted) {
 		if (!dotted) {
@@ -83,11 +84,17 @@ struct PanelArt : TransparentWidget {
 			{13.5f, 3.4f, 29.0f, 4.4f}, {104.0f, 3.4f, 37.6f, 4.4f}, {145.0f, 3.4f, 37.0f, 4.4f}, {186.0f, 3.4f, 24.4f, 4.4f},
 			{106.6f, 62.0f, 17.4f, 4.2f}, {140.2f, 62.0f, 20.0f, 4.2f}, {181.0f, 62.0f, 22.2f, 4.2f}, {106.6f, 102.0f, 17.4f, 4.0f},
 		};
-		bb::Ink k = {t.panel, t.ink};
-		for (const R& r : sections)
-			bb::notchedFrame(vg, Rect(Vec(r.x, r.y), Vec(r.w, r.h)), k, 2.4f, 1.6f);
+		bb::Ink k = bb::ink(module ? module->theme : 0);
+		// sections: thin grey outlines, no ornament
+		nvgStrokeWidth(vg, mm2px(0.25f));
+		nvgStrokeColor(vg, k.dim);
+		for (const R& r : sections) {
+			nvgBeginPath(vg);
+			nvgRect(vg, mm2px(r.x), mm2px(r.y), mm2px(r.w), mm2px(r.h));
+			nvgStroke(vg);
+		}
 		// hairline dividers
-		nvgStrokeColor(vg, t.outline);
+		nvgStrokeColor(vg, k.dim);
 		nvgStrokeWidth(vg, mm2px(0.25f));
 		line(vg, 1.6f, 23.0f, 54.6f, 23.0f, false);
 		line(vg, 1.6f, 36.6f, 40.5f, 36.6f, true);
@@ -102,33 +109,33 @@ struct PanelArt : TransparentWidget {
 		line(vg, 128.8f, 9.0f, 128.8f, 51.2f, true);
 		line(vg, 128.8f, 51.2f, 134.0f, 51.2f, true);
 
-		// tabs sit on the top outline of their section
+		// the section headers interrupt the outline
 		for (const R& r : tabs) {
-			bb::chamferPath(vg, Rect(Vec(r.x, r.y), Vec(r.w, r.h)), 1.0f);
+			nvgBeginPath(vg);
+			nvgRect(vg, mm2px(r.x), mm2px(r.y), mm2px(r.w), mm2px(r.h));
 			nvgFillColor(vg, t.panel);
 			nvgFill(vg);
-			nvgStrokeColor(vg, t.ink);
-			nvgStrokeWidth(vg, mm2px(0.5f));
-			nvgStroke(vg);
 		}
+		for (const Vec& o : outputs)
+			bb::outRing(vg, o, k, 4.2f);
 
 		// display frame, with stencil brackets
 		nvgBeginPath(vg);
 		nvgRect(vg, mm2px(61.0f), mm2px(29.4f), mm2px(34.2f), mm2px(19.6f));
 		nvgFillColor(vg, t.black);
 		nvgFill(vg);
-		bb::bracketFrame(vg, Rect(Vec(61.0f, 29.4f), Vec(34.2f, 19.6f)), k, 2.6f);
+		nvgStrokeColor(vg, k.dim);
+		nvgStroke(vg);
 
 		// the name, in stencil type
 		std::shared_ptr<window::Font> stencil = pluginFont("BlackOpsOne-Regular.ttf");
 		if (stencil) {
-			nvgFontFaceId(vg, stencil->handle);
-			nvgFontSize(vg, mm2px(4.2f));
-			nvgTextLetterSpacing(vg, mm2px(0.3f));
-			nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-			nvgFillColor(vg, t.ink);
-			nvgText(vg, mm2px(78.7f), mm2px(2.9f), "HARMONION", NULL);
-			nvgTextLetterSpacing(vg, 0.f);
+			// the name sits in a gap of the centre section's outline
+			nvgBeginPath(vg);
+			nvgRect(vg, mm2px(62.0f), mm2px(0.4f), mm2px(33.4f), mm2px(6.6f));
+			nvgFillColor(vg, t.panel);
+			nvgFill(vg);
+			bb::nameplate(vg, 78.7f, 2.8f, "HARMONION", stencil->handle, k, 3.8f);
 		}
 	}
 };
@@ -432,8 +439,10 @@ struct HarmonionWidget : ModuleWidget {
 		};
 		for (const Jack& j : jacks) {
 			Vec pos = mm2px(Vec(JACK_X[j.col], JACK_Y[j.row]));
-			if (j.output)
+			if (j.output) {
 				addOutput(createOutputCentered<ctl::Jack>(pos, module, j.id));
+				art->outputs.push_back(Vec(JACK_X[j.col], JACK_Y[j.row]));
+			}
 			else
 				addInput(createInputCentered<ctl::Jack>(pos, module, j.id));
 			labels->add(JACK_X[j.col], JACK_Y[j.row] + 5.9f, j.label, 1.7f);
