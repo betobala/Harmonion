@@ -78,11 +78,11 @@ struct PanelArt : TransparentWidget {
 		};
 		static const R sections[] = {
 			{1.6f, 5.6f, 53.0f, 119.2f}, {56.4f, 5.6f, 44.6f, 119.2f}, {102.6f, 5.6f, 109.2f, 57.8f},
-			{102.6f, 64.0f, 25.4f, 60.8f}, {129.4f, 64.0f, 41.6f, 60.8f}, {172.4f, 64.0f, 39.4f, 60.8f},
+			{102.6f, 65.1f, 25.4f, 59.7f}, {129.4f, 65.1f, 41.6f, 59.7f}, {172.4f, 65.1f, 39.4f, 59.7f},
 		};
 		static const R tabs[] = {
 			{13.5f, 3.4f, 29.0f, 4.4f}, {104.0f, 3.4f, 37.6f, 4.4f}, {145.0f, 3.4f, 37.0f, 4.4f}, {186.0f, 3.4f, 24.4f, 4.4f},
-			{106.6f, 62.0f, 17.4f, 4.2f}, {140.2f, 62.0f, 20.0f, 4.2f}, {181.0f, 62.0f, 22.2f, 4.2f}, {106.6f, 102.0f, 17.4f, 4.0f},
+			{106.6f, 63.1f, 17.4f, 4.2f}, {140.2f, 63.1f, 20.0f, 4.2f}, {181.0f, 63.1f, 22.2f, 4.2f}, {106.6f, 102.0f, 17.4f, 4.0f},
 		};
 		bb::Ink k = bb::ink(module ? module->theme : 0);
 		// sections: thin grey outlines, no ornament
@@ -157,7 +157,7 @@ struct PanelLabels : TransparentWidget {
 	}
 
 	void draw(const DrawArgs& args) override {
-		std::shared_ptr<window::Font> font = pluginFont("MartianMono-Label.ttf");
+		std::shared_ptr<window::Font> font = pluginFont("BebasNeue-Regular.ttf");
 		std::shared_ptr<window::Font> stencil = pluginFont("BlackOpsOne-Regular.ttf");
 		if (!font || !stencil)
 			return;
@@ -165,7 +165,7 @@ struct PanelLabels : TransparentWidget {
 		nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 		const Theme& t = themeColors(module ? module->theme : 0);
 		for (const Label& l : labels) {
-			nvgFontSize(args.vg, mm2px(l.size) * ((l.header || l.vertical) ? 1.55f : 1.9f));
+			nvgFontSize(args.vg, mm2px(l.size) * (l.header ? 1.55f : (l.vertical ? 2.4f : 3.0f)));
 			nvgFillColor(args.vg, (l.header || l.size >= 2.4f) ? t.ink : t.grey);
 			nvgFontFaceId(args.vg, l.header ? stencil->handle : font->handle);
 			if (l.vertical) {
@@ -445,7 +445,7 @@ struct HarmonionWidget : ModuleWidget {
 			}
 			else
 				addInput(createInputCentered<ctl::Jack>(pos, module, j.id));
-			labels->add(JACK_X[j.col], JACK_Y[j.row] + 5.9f, j.label, 1.7f);
+			labels->add(JACK_X[j.col], JACK_Y[j.row] + 6.3f, j.label, 1.7f);
 			if (j.light >= 0)
 				addChild(createLightCentered<SmallLight<AmberLight>>(mm2px(Vec(JACK_X[j.col] + 5.2f, JACK_Y[j.row] + 4.2f)), module, j.light));
 		}
@@ -503,12 +503,12 @@ struct HarmonionWidget : ModuleWidget {
 			for (int col = 0; col < 8; col++) {
 				int b = top(r, col);
 				addParam(makeFlat(mm2px(Vec(GRID_X[col], GRID_Y[r])), module, H::BIG_PARAM + b, H::BIG_LIGHT + b, 6.2f));
-				labels->add(GRID_X[col], GRID_Y[r] + 6.3f, gridLabels[r][col], 1.6f);
+				labels->add(GRID_X[col], GRID_Y[r] + 5.7f, gridLabels[r][col], 1.45f);
 			}
 		}
 
 		// Assign + gates
-		labels->add(115.3f, 64.1f, "ASSIGN", 1.9f, true);
+		labels->add(115.3f, 65.2f, "ASSIGN", 1.9f, true);
 		addParam(ctl::knob(mm2px(Vec(115.3f, 75.4f)), module, H::POT1_PARAM, 4.6f));
 		addParam(ctl::knob(mm2px(Vec(115.3f, 92.4f)), module, H::POT2_PARAM, 4.6f));
 		labels->add(115.3f, 83.4f, "POT 1");
@@ -521,8 +521,8 @@ struct HarmonionWidget : ModuleWidget {
 		}
 
 		// Chords and arpeggio
-		labels->add(150.2f, 64.1f, "CHORDS", 1.9f, true);
-		labels->add(192.1f, 64.1f, "ARPEGGIO", 1.9f, true);
+		labels->add(150.2f, 65.2f, "CHORDS", 1.9f, true);
+		labels->add(192.1f, 65.2f, "ARPEGGIO", 1.9f, true);
 		static const char* const toneLabels[7] = {"ROOT", "3RD", "5TH", "7TH", "9TH", "11TH", "13TH"};
 		const float chordX[2] = {137.3f, 150.4f};
 		const float arpX[2] = {178.5f, 191.6f};
