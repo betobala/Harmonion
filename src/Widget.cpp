@@ -132,10 +132,10 @@ struct PanelArt : TransparentWidget {
 		if (stencil) {
 			// the name sits in a gap of the centre section's outline
 			nvgBeginPath(vg);
-			nvgRect(vg, mm2px(62.0f), mm2px(0.4f), mm2px(33.4f), mm2px(6.6f));
+			nvgRect(vg, mm2px(62.0f), mm2px(0.4f), mm2px(33.4f), mm2px(7.6f));
 			nvgFillColor(vg, t.panel);
 			nvgFill(vg);
-			bb::nameplate(vg, 78.7f, 2.8f, "HARMONION", stencil->handle, k, 3.8f);
+			bb::nameplate(vg, 78.7f, 2.8f, "HARMONION", stencil->handle, k, 3.8f, bb::MARK_DOTS);
 		}
 	}
 };
