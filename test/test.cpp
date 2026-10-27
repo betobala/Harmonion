@@ -459,6 +459,31 @@ int main(int argc, char** argv) {
 	m->page = H::PAGE_MAIN;
 	m->settings.inMix[1][0] = false;
 	m->settings.outSrc[2] = 2;
+	// Section options of the OCT page are confirmed on the display
+	press(H::OCT_PARAM);
+	press(H::BIG_PARAM + OCT_MAP[SEC_CH2].scaling);
+	expectHas("OCT: Ch2 input scaling", screenText(), "Channel 2\n2 Volts / Octave");
+	dump("popup_oct");
+	for (int i = 0; i < 3; i++)
+		press(H::BIG_PARAM + OCT_MAP[SEC_CH2].scaling);
+	expectHas("OCT: Ch2 back to 1 V/oct", screenText(), "Channel 2\n1 Volt / Octave");
+	press(H::BIG_PARAM + OCT_MAP[SEC_ARP].scaling);
+	expectHas("OCT: arpeggio input scaling (BEGIN)", screenText(), "Arpeggio\n2 Volts / Octave");
+	for (int i = 0; i < 3; i++)
+		press(H::BIG_PARAM + OCT_MAP[SEC_ARP].scaling);
+	press(H::BIG_PARAM + OCT_MAP[SEC_CH1].bypass);
+	expectHas("OCT: Ch1 soft bypass", screenText(), "Channel 1\nBypass + Transpose");
+	press(H::BIG_PARAM + OCT_MAP[SEC_CH1].bypass);
+	press(H::BIG_PARAM + OCT_MAP[SEC_CH1].bypass);
+	expectHas("OCT: Ch1 back to normal", screenText(), "Channel 1\nNormal, Quantize");
+	press(H::BIG_PARAM + OCT_MAP[SEC_CHORDS].follow);
+	expectHas("OCT: chords follow root", screenText(), "Chords\nIN follows ROOT");
+	press(H::BIG_PARAM + OCT_MAP[SEC_CHORDS].follow);
+	press(H::BIG_PARAM + OCT_MAP[SEC_CH3].glide);
+	expectHas("OCT: Ch3 slew detection", screenText(), "Channel 3\nSlew Detection on");
+	press(H::BIG_PARAM + OCT_MAP[SEC_CH3].glide);
+	press(H::OCT_PARAM);
+	m->popupUntil = 0.0;
 	m->editPreset().pattern = PAT_UP;
 	press(H::BIG_PARAM + ARP_BTN + AB_PATTERN);
 	press(H::BIG_PARAM + ARP_BTN + AB_PATTERN);

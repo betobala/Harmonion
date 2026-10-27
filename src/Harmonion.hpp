@@ -396,12 +396,18 @@ struct Harmonion : Module {
 	double lastPlayPress = -10.0;
 	float voltmeter = 0.f;
 	bool voltmeterActive = false;
-	// Short message on the display after PATTERN, BEGIN, INV or the live mode changed
-	enum Popup { POPUP_NONE, POPUP_PATTERN, POPUP_BEGIN, POPUP_INV, POPUP_LIVE };
+	// Short message on the display after PATTERN, BEGIN, INV, the live mode or a section option of
+	// the OCT page (input scaling, bypass, IN follows ROOT, glide detection) changed
+	enum Popup {
+		POPUP_NONE, POPUP_PATTERN, POPUP_BEGIN, POPUP_INV, POPUP_LIVE,
+		POPUP_IN_SCALE, POPUP_BYPASS, POPUP_FOLLOW, POPUP_GLIDE
+	};
 	int popup = POPUP_NONE;
+	int popupSection = 0;
 	double popupUntil = 0.0;
-	void showPopup(int kind) {
+	void showPopup(int kind, int section = 0) {
 		popup = kind;
+		popupSection = section;
 		popupUntil = time + 1.5;
 	}
 

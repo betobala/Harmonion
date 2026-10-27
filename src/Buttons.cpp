@@ -185,14 +185,22 @@ void Harmonion::pressOct(int b) {
 			p.octave[s] = std::min(3, p.octave[s] + 1);
 		else if (b == m.down)
 			p.octave[s] = std::max(-3, p.octave[s] - 1);
-		else if (b == m.follow)
+		else if (b == m.follow) {
 			settings.follow[s] ^= true;
-		else if (b == m.scaling)
+			showPopup(POPUP_FOLLOW, s);
+		}
+		else if (b == m.scaling) {
 			settings.inScale[s] = (settings.inScale[s] + 1) % 4;
-		else if (s < 3 && b == m.bypass)
+			showPopup(POPUP_IN_SCALE, s);
+		}
+		else if (s < 3 && b == m.bypass) {
 			settings.bypass[s] = (settings.bypass[s] + 1) % 3;
-		else if (s < 3 && b == m.glide)
+			showPopup(POPUP_BYPASS, s);
+		}
+		else if (s < 3 && b == m.glide) {
 			settings.glide[s] ^= true;
+			showPopup(POPUP_GLIDE, s);
+		}
 	}
 }
 

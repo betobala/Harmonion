@@ -126,6 +126,11 @@ void Harmonion::buildScreen(Screen& s) {
 
 	if (popup != POPUP_NONE && time < popupUntil) {
 		const Preset& p = editPreset();
+		// Section options use the names of the manual (chapter 6)
+		static const char* const sectionNames[NUM_SECTIONS] = {"Channel 1", "Channel 2", "Channel 3", "Chords", "Arpeggio"};
+		static const char* const inScaleNames[4] = {"1 Volt / Octave", "2 Volts / Octave", "3 Volts / Octave", "5 Volts / Octave"};
+		static const char* const bypassNames[3] = {"Normal, Quantize", "Bypass + Transpose", "Bypass"};
+		int sec = clamp(popupSection, 0, NUM_SECTIONS - 1);
 		std::string title, value;
 		switch (popup) {
 			case POPUP_PATTERN:
@@ -139,6 +144,23 @@ void Harmonion::buildScreen(Screen& s) {
 			case POPUP_INV:
 				title = "Chord Inversion";
 				value = INVERSION_NAMES[p.inversion % 5];
+				break;
+			case POPUP_IN_SCALE:
+				title = sectionNames[sec];
+				value = inScaleNames[clamp(settings.inScale[sec], 0, 3)];
+				break;
+			case POPUP_BYPASS:
+				title = sectionNames[sec];
+				value = bypassNames[clamp(settings.bypass[std::min(sec, 2)], 0, 2)];
+				break;
+			case POPUP_FOLLOW:
+				title = sectionNames[sec];
+				value = settings.follow[sec] ? "IN follows ROOT" : "IN is not shifted";
+				break;
+			case POPUP_GLIDE:
+				// reconstruído: the manual calls the feature "Slew Detection"
+				title = sectionNames[sec];
+				value = settings.glide[std::min(sec, 2)] ? "Slew Detection on" : "Slew Detection off";
 				break;
 			default:
 				title = "Buttons + Octaves";
