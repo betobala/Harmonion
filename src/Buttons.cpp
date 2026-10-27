@@ -246,10 +246,14 @@ void Harmonion::pressSong(int b) {
 	if (p < 0)
 		return;
 	// First press: switch at the end of the current part. Second press: switch now.
-	if (pendingPart == p)
+	if (pendingPart == p) {
 		gotoPart(p);
-	else
+		showPopup(POPUP_PART_NOW, p);
+	}
+	else {
 		pendingPart = p;
+		showPopup(POPUP_PART_NEXT, p);
+	}
 }
 
 void Harmonion::pressCalib(int b) {
@@ -292,13 +296,18 @@ void Harmonion::pressSmall(int i) {
 		case SONG:
 			if (seqMode && !syncSlave)
 				page = (page == PAGE_SONG) ? PAGE_MAIN : PAGE_SONG;
+			else
+				showPopup(syncSlave ? POPUP_SEQ_SLAVE : POPUP_NEEDS_SEQ, SONG_PARAM);
 			break;
 		case OCT:
 			page = (page == PAGE_OCT || page == PAGE_MATRIX) ? PAGE_MAIN : PAGE_OCT;
 			break;
 		case SEQ:
-			if (syncSlave)
+			if (syncSlave) {
+				// The sequencer of a slave is disabled, the master plays the progression
+				showPopup(POPUP_SEQ_SLAVE, SEQ_PARAM);
 				break;
+			}
 			seqMode ^= true;
 			frozen = false;
 			lastSongCv = -1;
@@ -329,8 +338,11 @@ void Harmonion::pressSmall(int i) {
 			}
 		} break;
 		case PLAY:
-			if (!seqMode || syncSlave)
+			if (!seqMode || syncSlave) {
+				showPopup(syncSlave ? POPUP_SEQ_SLAVE : POPUP_NEEDS_SEQ, PLAY_PARAM);
 				break;
+			}
+			showPopup(POPUP_PLAY);
 			if (time - lastPlayPress < 0.4) {
 				// Double click: freeze (the first click already toggled play)
 				playing = !playing;
@@ -388,6 +400,9 @@ void Harmonion::pressSmall(int i) {
 					p.steps.insert(p.steps.begin() + step + 1, copy);
 					step++;
 					onStepChange();
+				}
+				else {
+					showPopup(POPUP_PART_FULL);
 				}
 			}
 			break;

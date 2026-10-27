@@ -403,6 +403,9 @@ void Harmonion::resetSettings() {
 }
 
 void Harmonion::factoryReset() {
+	// The original restarts after a factory reset and shows its start screen
+	splashUntil = time + 2.0;
+	knobsInit = false;
 	settings = Settings();
 	for (int i = 0; i < NUM_PRESETS; i++)
 		presets[i] = Preset::defaults();
@@ -794,12 +797,17 @@ static float slewSeconds(float knob) {
 	return 0.005f * std::pow(400.f, knob);
 }
 
+float Harmonion::slewTime() {
+	float t = slewSeconds(params[SLEW_PARAM].getValue());
+	if (funcActive[CV_SLEW_TIME])
+		t *= std::max(0.f, funcCv[CV_SLEW_TIME] / 2.5f);
+	return t;
+}
+
 float Harmonion::postProcess(int out, float v, int sec, bool slewOn, float dt) {
 	Slew* slew = (out < 3) ? &ch[out].slew : (out == 3) ? &arpSlew : &chordSlew[out - 4];
 	v += transSemis / 12.f + audiblePreset().octave[sec];
-	float t = slewOn ? slewSeconds(params[SLEW_PARAM].getValue()) : 0.f;
-	if (funcActive[CV_SLEW_TIME])
-		t *= std::max(0.f, funcCv[CV_SLEW_TIME] / 2.5f);
+	float t = slewOn ? slewTime() : 0.f;
 	v = slew->process(v, t, settings.slewExp, dt);
 	float detune = (funcActive[CV_DETUNE] ? funcCv[CV_DETUNE] : 0.f) + (syncSlave && syncAlive ? syncDetune : 0.f);
 	v += DETUNE_FACTOR[out] * clamp(detune, -5.f, 5.f) / 5.f * 2.f / 12.f;
@@ -1533,12 +1541,31 @@ void Harmonion::tick(float dt) {
 	processOutputs(dt);
 }
 
+static const int WATCHED_KNOBS[Harmonion::NUM_WATCHED_KNOBS] = {
+	Harmonion::SLEW_PARAM, Harmonion::POT1_PARAM, Harmonion::POT2_PARAM, Harmonion::CHORD_PITCH_PARAM,
+	Harmonion::SPREAD_PARAM, Harmonion::ARP_PITCH_PARAM, Harmonion::RANGE_PARAM,
+};
+
+void Harmonion::watchKnobs() {
+	for (int i = 0; i < NUM_WATCHED_KNOBS; i++) {
+		const ParamQuantity* pq = paramQuantities[WATCHED_KNOBS[i]];
+		float v = params[WATCHED_KNOBS[i]].getValue();
+		float range = pq->maxValue - pq->minValue;
+		if (knobsInit && std::fabs(v - lastKnob[i]) > 0.002f * range)
+			showPopup(POPUP_KNOB, WATCHED_KNOBS[i]);
+		if (!knobsInit || std::fabs(v - lastKnob[i]) > 0.002f * range)
+			lastKnob[i] = v;
+	}
+	knobsInit = true;
+}
+
 void Harmonion::process(const ProcessArgs& args) {
 	time += args.sampleTime;
 	sampleTime = args.sampleTime;
 	if (controlDivider.process()) {
 		float dt = args.sampleTime * controlDivider.getDivision();
 		handleButtons();
+		watchKnobs();
 		tick(dt);
 	}
 	if (lightDivider.process())
@@ -1611,9 +1638,12 @@ void Harmonion::dataFromJson(json_t* root) {
 	seqMode = jbool(root, "seqMode", false);
 	playing = jbool(root, "playing", true);
 	song = clamp(jint(root, "song", 0), 0, NUM_SONGS - 1);
-	part = clamp(jint(root, "part", 0), 0, NUM_PARTS - 1);
-	step = jint(root, "step", 0);
-	currentStep();
+	// Like the original after power up: the song starts in part A at its first step
+	part = 0;
+	step = 0;
+	beat = 0;
+	pendingPart = -1;
+	knobsInit = false;
 	json_t* cal = json_object_get(root, "calib");
 	for (int i = 0; cal && i < 16 && i < (int) json_array_size(cal); i++)
 		calib[i / 2][i % 2] = json_real_value(json_array_get(cal, i));

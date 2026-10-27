@@ -397,19 +397,26 @@ struct Harmonion : Module {
 	float voltmeter = 0.f;
 	bool voltmeterActive = false;
 	// Short message on the display after PATTERN, BEGIN, INV, the live mode or a section option of
-	// the OCT page (input scaling, bypass, IN follows ROOT, glide detection) changed
+	// the OCT page (input scaling, bypass, IN follows ROOT, glide detection) changed. The others are
+	// additions of the Harmonion: song part selection, play/pause/freeze, knob values and hints for
+	// buttons that have no effect.
 	enum Popup {
 		POPUP_NONE, POPUP_PATTERN, POPUP_BEGIN, POPUP_INV, POPUP_LIVE,
-		POPUP_IN_SCALE, POPUP_BYPASS, POPUP_FOLLOW, POPUP_GLIDE
+		POPUP_IN_SCALE, POPUP_BYPASS, POPUP_FOLLOW, POPUP_GLIDE,
+		POPUP_PART_NEXT, POPUP_PART_NOW, POPUP_PLAY, POPUP_KNOB, POPUP_PART_FULL, POPUP_NEEDS_SEQ, POPUP_SEQ_SLAVE
 	};
 	int popup = POPUP_NONE;
-	int popupSection = 0;
+	int popupArg = 0;  // section, song part or param id
 	double popupUntil = 0.0;
-	void showPopup(int kind, int section = 0) {
+	void showPopup(int kind, int arg = 0) {
 		popup = kind;
-		popupSection = section;
+		popupArg = arg;
 		popupUntil = time + 1.5;
 	}
+	// Knobs without a place on the display show their value while they are turned
+	static const int NUM_WATCHED_KNOBS = 7;
+	float lastKnob[NUM_WATCHED_KNOBS] = {};
+	bool knobsInit = false;
 
 	float sampleTime = 1.f / 44100.f;
 	dsp::ClockDivider controlDivider;
@@ -429,6 +436,9 @@ struct Harmonion : Module {
 	Preset& editPreset();
 	const Preset& audiblePreset();
 	void readKnobs();
+	void watchKnobs();
+	/** Slew time in seconds from the SLEW knob and the CV "Slew Time" */
+	float slewTime();
 	void updateHarmony();
 	void tick(float dt);
 	void handleButtons();
@@ -449,6 +459,7 @@ struct Harmonion : Module {
 	bool comboHeld(std::initializer_list<int> big, std::initializer_list<int> small);
 	/** Display content, see Screen.hpp */
 	void buildScreen(Screen& s);
+	void knobPopup(int id, std::string* title, std::string* value);
 
 	void seqClock();
 	void seqBeat();

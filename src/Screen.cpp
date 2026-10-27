@@ -83,6 +83,62 @@ static void octaveSlider(Screen& s, float cx, int octave) {
 	s.rect(cx - 4.3f, cy - 2.3f, 8.6f, 4.6f, octave == 0);
 }
 
+/** Name and value of a knob that has no place on the display */
+void Harmonion::knobPopup(int id, std::string* title, std::string* value) {
+	float v = params[id].getValue();
+	switch (id) {
+		case SLEW_PARAM: {
+			float t = slewTime();
+			*title = "Slew";
+			if (t <= 0.f)
+				*value = "off";
+			else if (t < 1.f)
+				*value = string::f("%d ms", (int) std::round(t * 1000.f));
+			else
+				*value = string::f("%.2f s", t);
+		} break;
+		case POT1_PARAM:
+		case POT2_PARAM: {
+			int k = id - POT1_PARAM;
+			int f = settings.potFunc[k];
+			if (f <= CV_NONE || f >= NUM_CV_FUNCS) {
+				*title = string::f("Pot %d", k + 1);
+				*value = "(not assigned)";
+				break;
+			}
+			// With a CV on the same function the pot is a unipolar attenuator
+			bool atten = false;
+			for (int i = 0; i < 4; i++)
+				if (settings.cvFunc[i] == f && inputs[CV_INPUT + i].isConnected())
+					atten = true;
+			*title = CV_FUNC_NAMES[f];
+			if (atten)
+				*value = string::f("Pot %d: %d%% of CV", k + 1, (int) std::round(v * 100.f));
+			else if (isBipolar(f))
+				*value = string::f("Pot %d: %+d%%", k + 1, (int) std::round((v * 2.f - 1.f) * 100.f));
+			else
+				*value = string::f("Pot %d: %d%%", k + 1, (int) std::round(v * 100.f));
+		} break;
+		case CHORD_PITCH_PARAM:
+		case ARP_PITCH_PARAM:
+			*title = (id == CHORD_PITCH_PARAM) ? "Chords Pitch" : "Arpeggio Pitch";
+			*value = pitchName(v) + string::f(" (%.2f V)", v);
+			break;
+		case SPREAD_PARAM: {
+			int sp = (int) std::round(v);
+			*title = funcActive[CV_SPREAD] ? "Chords Spread max" : "Chords Spread";
+			*value = sp ? string::f("%d semitones", sp) : "closest";
+		} break;
+		case RANGE_PARAM: {
+			int r = (int) std::round(v);
+			*title = "Arpeggio Range";
+			*value = string::f("%d semitones", r);
+			if (r > 0 && r % 12 == 0)
+				*value += string::f(" (%d oct)", r / 12);
+		} break;
+	}
+}
+
 void Harmonion::buildScreen(Screen& s) {
 	s.clear();
 	typedef Screen S;
@@ -130,7 +186,7 @@ void Harmonion::buildScreen(Screen& s) {
 		static const char* const sectionNames[NUM_SECTIONS] = {"Channel 1", "Channel 2", "Channel 3", "Chords", "Arpeggio"};
 		static const char* const inScaleNames[4] = {"1 Volt / Octave", "2 Volts / Octave", "3 Volts / Octave", "5 Volts / Octave"};
 		static const char* const bypassNames[3] = {"Normal, Quantize", "Bypass + Transpose", "Bypass"};
-		int sec = clamp(popupSection, 0, NUM_SECTIONS - 1);
+		int sec = clamp(popupArg, 0, NUM_SECTIONS - 1);
 		std::string title, value;
 		switch (popup) {
 			case POPUP_PATTERN:
@@ -161,6 +217,31 @@ void Harmonion::buildScreen(Screen& s) {
 				// reconstruído: the manual calls the feature "Slew Detection"
 				title = sectionNames[sec];
 				value = settings.glide[std::min(sec, 2)] ? "Slew Detection on" : "Slew Detection off";
+				break;
+			case POPUP_PART_NEXT:
+			case POPUP_PART_NOW:
+				title = "Song Part";
+				value = string::f("%d%c ", song + 1, 'A' + clamp(popupArg, 0, NUM_PARTS - 1)) +
+					((popup == POPUP_PART_NOW) ? "now" : "at end of part");
+				break;
+			case POPUP_PLAY:
+				title = "Sequencer";
+				value = frozen ? "Freeze" : playing ? "Play" : "Pause";
+				break;
+			case POPUP_PART_FULL:
+				title = "Song Part full";
+				value = string::f("%d steps", MAX_STEPS);
+				break;
+			case POPUP_NEEDS_SEQ:
+				title = (popupArg == PLAY_PARAM) ? "Play / Pause" : "SONG page";
+				value = "needs SEQ";
+				break;
+			case POPUP_SEQ_SLAVE:
+				title = (popupArg == PLAY_PARAM) ? "Play / Pause" : (popupArg == SONG_PARAM) ? "SONG page" : "Sequencer";
+				value = "off in Sync Slave";
+				break;
+			case POPUP_KNOB:
+				knobPopup(popupArg, &title, &value);
 				break;
 			default:
 				title = "Buttons + Octaves";

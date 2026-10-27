@@ -287,6 +287,8 @@ int main(int argc, char** argv) {
 	m->settings.display = DISP_CHORD;
 	m->splashUntil = 0.0;
 	ms(5);
+	expectHas("SPREAD knob shows its value", screenText(), "Chords Spread\n8 semitones");
+	m->popupUntil = 0.0;
 	expectHas("Chord Structure 5··3·71", screenText(), "5··3·71");
 	dump("chord_structure");
 	m->params[H::SPREAD_PARAM].setValue(0);
@@ -397,6 +399,7 @@ int main(int argc, char** argv) {
 	printf("-- Display\n");
 	m->splashUntil = 0.0;
 	ms(5);
+	m->popupUntil = 0.0;
 	expectHas("main: root and mode", screenText(), "C\nChords\n");
 	expectHas("main: chord with raised suffix", screenText(), "Clyd");
 	expectHas("main: scale tones", screenText(), "C D E F♯ G A B");
@@ -522,6 +525,60 @@ int main(int argc, char** argv) {
 	dump("splash");
 	m->splashUntil = 0.0;
 
+	printf("-- Feedback on the display\n");
+	m->popupUntil = 0.0;
+	press(H::SONG_PARAM);
+	expectHas("SONG without SEQ", screenText(), "SONG page\nneeds SEQ");
+	press(H::PLAY_PARAM);
+	expectHas("PLAY without SEQ", screenText(), "Play / Pause\nneeds SEQ");
+	press(H::SEQ_PARAM);
+	press(H::SONG_PARAM);
+	press(H::BIG_PARAM + GATE_BTN + 1);
+	expectHas("part B on the first press", screenText(), "Song Part\n1B at end of part");
+	expect("part B is pending", m->pendingPart, 1);
+	press(H::BIG_PARAM + GATE_BTN + 1);
+	expectHas("part B on the second press", screenText(), "Song Part\n1B now");
+	expect("part B is playing", m->part, 1);
+	press(H::BIG_PARAM + GATE_BTN);
+	press(H::BIG_PARAM + GATE_BTN);
+	press(H::SONG_PARAM);
+	press(H::PLAY_PARAM);
+	expectHas("PLAY pauses", screenText(), "Sequencer\nPause");
+	ms(500);
+	press(H::PLAY_PARAM);
+	expectHas("PLAY plays", screenText(), "Sequencer\nPlay");
+	size_t nSteps = m->currentPart().steps.size();
+	m->currentPart().steps.resize(MAX_STEPS);
+	press(H::ADD_PARAM);
+	expectHas("ADD with a full part", screenText(), "Song Part full\n32 steps");
+	m->currentPart().steps.resize(nSteps);
+	m->step = 0;
+	press(H::SEQ_PARAM);
+	m->params[H::POT1_PARAM].setValue(0.5f);
+	ms(5);
+	expectHas("POT 1 without function", screenText(), "Pot 1\n(not assigned)");
+	m->settings.potFunc[0] = CV_HARMONIC_SHIFT;
+	m->params[H::POT1_PARAM].setValue(0.42f);
+	ms(5);
+	expectHas("POT 1 shows its function", screenText(), "Harmonic Shift\nPot 1: 42%");
+	m->settings.potFunc[0] = CV_NONE;
+	m->params[H::POT1_PARAM].setValue(0.f);
+	m->params[H::RANGE_PARAM].setValue(24.f);
+	ms(5);
+	expectHas("RANGE knob", screenText(), "Arpeggio Range\n24 semitones (2 oct)");
+	m->params[H::RANGE_PARAM].setValue(12.f);
+	ms(5);
+	m->params[H::SLEW_PARAM].setValue(0.5f);
+	ms(5);
+	expectHas("SLEW knob", screenText(), "Slew\n100 ms");
+	m->params[H::SLEW_PARAM].setValue(0.f);
+	m->params[H::ARP_PITCH_PARAM].setValue(3.f);
+	ms(5);
+	expectHas("Arpeggio PITCH knob", screenText(), "Arpeggio Pitch\nC3 (3.00 V)");
+	m->params[H::ARP_PITCH_PARAM].setValue(2.f);
+	ms(5);
+	m->popupUntil = 0.0;
+
 	printf("-- Button combinations\n");
 	// Calibration: TUNE + LEFT + Channel 1 3RD held at once; MENU leaves
 	m->params[H::TUNE_PARAM].setValue(1.f);
@@ -552,13 +609,18 @@ int main(int argc, char** argv) {
 	ms(5);
 	expect("factory reset combination restores presets", m->presets[5].chords, Preset::defaults().chords);
 	expect("factory reset keeps BEGIN at Next Note", m->presets[0].begin, -1);
+	expectHas("factory reset restarts with the start screen", screenText(), "Harmonion");
+	m->splashUntil = 0.0;
 
 	printf("-- Persistence\n");
 	m->presets[3].chords = 0x55;
+	m->part = 2;
 	json_t* j = m->dataToJson();
+	m->part = 0;
 	H* m2 = new H;
 	m2->dataFromJson(j);
 	expect("Preset survives JSON", m2->presets[3].chords, 0x55);
+	expect("loading starts in part A", m2->part, 0);
 	json_decref(j);
 	// A version 1 patch saved the arpeggio clock as index into the old list (index 7 was 5/4)
 	json_t* old = json_pack("{s:{s:i, s:i}}", "settings", "arpClock", 6, "trigWindowMs", 20);
