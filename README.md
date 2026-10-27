@@ -15,7 +15,7 @@ Requer o Rack SDK 2.6 da sua plataforma em `dep/Rack-SDK`. No Windows, MSYS2 (MI
 make -j8 dist
 ```
 
-No Windows, copie `dist/Harmonion-2.1.0-win-x64.vcvplugin` para `%LOCALAPPDATA%\Rack2\plugins-win-x64\`
+No Windows, copie `dist/Harmonion-2.1.1-win-x64.vcvplugin` para `%LOCALAPPDATA%\Rack2\plugins-win-x64\`
 e reinicie o Rack.
 
 ## Testes
