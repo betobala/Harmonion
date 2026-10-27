@@ -44,11 +44,32 @@ Todas as funções dos capítulos 4–13 do manual:
   Reset To Defaults, factory reset, calibração das saídas.
 - **Harmonic Link**: OUT 1 = Sync Master, IN 1 = Sync Slave, via cabo polifônico.
 
+## Display
+
+OLED 128×64 emulado, com conteúdo e layout medidos nas fotos do display no manual. O modelo da tela
+(`src/Screen.cpp`) não depende de NanoVG; `tools/preview_display.py` renderiza as telas em PNG.
+
+- **Principal**: topo-esq raiz + modo; topo-dir acorde com sufixo sobrescrito (notação simples no modo
+  Chords, jazz com "-" e "△" nos outros); baixo-esq transposição; baixo-dir preset (1–16) ou música+parte ("4A").
+- **Centro** (menu Display): Scale Tones (notas na ordem dos botões 1-9-3-11-5-13-7, acidentes pequenos),
+  Scale Structure (● e ~), Chord Structure (slider da oitava, "5··3·71", inversão como cabeças de nota) e
+  Octave Switches (cinco sliders −3..+3). A página OCT mostra os sliders.
+- **Sequenciador**: beats em círculos (4 por linha) e passos em quadrados (8 por linha); "12/16" acima de
+  8 beats ou 16 passos.
+- **Menu**: indicador de 21 itens, título, valor ("(not assigned)" para nenhum) e indicador de valores.
+- **Outras telas**: matriz (grade de conexões + "→CH2→_23_"), Tuning Mode ("3V/C5/523.2 Hz"), voltímetro
+  na linha central, "Sync: alive/dead", calibração com o valor absoluto do DAC, popups de PATTERN
+  ("Arpeggio Mode"), BEGIN, INV e live mode, e a tela de início com a versão.
+
 ## Adaptações para o VCV Rack
 
 - O link serial de 115200 baud vira um cabo polifônico de 16 canais com o estado harmônico.
 - Configurações são salvas no patch (JSON) em vez da flash interna.
 - O menu do display também está disponível pelo menu de contexto (clique direito).
 - A calibração aplica um offset/ganho por saída. No VCV as saídas já são exatas.
-- Pontos que o manual não define (lista exata das 88 escalas, opções de A/B, valores de alguns
-  menus) foram reconstruídos com critério musical e estão marcados no código como `// reconstruído`.
+- Pontos que o manual não define (lista exata das 88 escalas, ordem de parte das listas do menu,
+  valores intermediários do Arpeggio Clock) foram reconstruídos e estão marcados no código como
+  `// reconstruído`. Onde o texto do manual e as fotos/diagramas divergem, valem as fotos: atribuições da
+  página OCT, ordem do menu e dos padrões do arpejo, mapeamento da escala alt, spread dos acordes.
+- Os patches guardam ids estáveis; a ordem do menu é uma tabela à parte. Patches da versão 2.0 são
+  convertidos ao carregar (índice do Arpeggio Clock, faixas de ms).

@@ -38,16 +38,18 @@ static const int C3_EQDIST = top(3, 7);
 // Sections that have octave switches and input options
 enum Section { SEC_CH1, SEC_CH2, SEC_CH3, SEC_CHORDS, SEC_ARP, NUM_SECTIONS };
 
-// OCT page assignment: octave up, octave down, IN follows ROOT, input scaling, bypass, glide detection
+// OCT page assignment (manual, chapter 6): octave up, octave down, IN follows ROOT, input scaling,
+// bypass, glide detection. Channel 3 goes down with 3RD and detects glides with 5TH; the arpeggio
+// has IN follows ROOT on PATTERN and the input scaling on BEGIN.
 struct OctMap {
 	int up, down, follow, scaling, bypass, glide;
 };
 static const OctMap OCT_MAP[NUM_SECTIONS] = {
 	{top(0, 0), top(1, 0), top(3, 1), top(3, 2), top(3, 0), top(0, 2)},
 	{top(0, 3), top(1, 3), top(3, 4), top(3, 5), top(3, 3), top(0, 5)},
-	{top(0, 6), top(1, 6), top(3, 7), top(2, 7), top(3, 6), top(0, 7)},
+	{top(0, 6), top(0, 7), top(3, 7), top(2, 7), top(3, 6), top(1, 6)},
 	{CHORD_BTN + T1, CHORD_BTN + T5, CHORD_BTN + CB_INV, CHORD_BTN + CB_SLEW, -1, -1},
-	{ARP_BTN + T1, ARP_BTN + T5, ARP_BTN + AB_BEGIN, ARP_BTN + AB_PATTERN, -1, -1},
+	{ARP_BTN + T1, ARP_BTN + T5, ARP_BTN + AB_PATTERN, ARP_BTN + AB_BEGIN, -1, -1},
 };
 
 /** The setting of all 52 large buttons plus the five octave switches */
@@ -101,10 +103,15 @@ static const int MAX_BEATS = 128;
 static const int NUM_PRESETS = 16;
 static const int CLOCK_DIVS[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 32, 48, 64};
 static const int NUM_CLOCK_DIVS = 15;
-// Arpeggio clock ratios: multiplier / divider
-static const int ARP_RATIO[16][2] = {{1, 4}, {1, 3}, {2, 5}, {1, 2}, {2, 3}, {3, 4}, {1, 1}, {5, 4},
+// Arpeggio clock ratios: multiplier / divider. The manual's photo shows 1/1 as the 8th of 16 values;
+// reconstruído: the values between 1/4 and 4/1
+static const int NUM_ARP_RATIOS = 16;
+static const int ARP_RATIO[NUM_ARP_RATIOS][2] = {{1, 4}, {1, 3}, {2, 5}, {1, 2}, {3, 5}, {2, 3}, {3, 4}, {1, 1},
 	{4, 3}, {3, 2}, {5, 3}, {2, 1}, {5, 2}, {3, 1}, {7, 2}, {4, 1}};
-static const int ARP_RATIO_UNITY = 6;
+static const int ARP_RATIO_UNITY = 7;
+// Menu ranges, from the number of values in the manual's photos
+static const int MAX_TRIG_WINDOW_MS = 14;
+static const int MAX_ARP_DELAY_MS = 13;
 
 enum CvFunc {
 	CV_NONE, CV_TRANSPOSE, CV_SHUFFLE, CV_DETUNE, CV_HARMONIC_SHIFT, CV_PRESET, CV_SLEW_TIME, CV_VOLTMETER,
@@ -126,8 +133,13 @@ enum OutFunc {
 	OUT_CH1_AB, OUT_CHORD_CHANGE,
 	NUM_OUT_FUNCS
 };
-enum AbMode { AB_OFF, AB_JACK, AB_BEAT1, AB_ODD_BEATS, AB_EVEN_BEATS, AB_STEP_START, AB_CLOCK1, AB_ODD_CLOCKS, NUM_AB_MODES };
+enum AbMode {
+	AB_OFF, AB_JACK, AB_BEAT1, AB_ODD_BEATS, AB_EVEN_BEATS, AB_STEP_START, AB_CLOCK1, AB_ODD_CLOCKS, AB_EVEN_CLOCKS,
+	NUM_AB_MODES
+};
 enum DisplayMode { DISP_TONES, DISP_STRUCTURE, DISP_CHORD, DISP_OCTAVES, NUM_DISP_MODES };
+// Arpeggio patterns. The ids are saved in patches; PATTERN_ORDER is the order of the button.
+enum Pattern { PAT_UP, PAT_DOWN, PAT_UPDOWN, PAT_DOWNUP, PAT_BAROQUE, PAT_OCTAVES, PAT_BROWNIAN, PAT_RANDOM, NUM_PATTERNS };
 
 extern const char* const CV_FUNC_NAMES[NUM_CV_FUNCS];
 extern const char* const IN_FUNC_NAMES[NUM_IN_FUNCS];
@@ -136,16 +148,26 @@ extern const char* const AB_MODE_NAMES[NUM_AB_MODES];
 extern const char* const DISPLAY_MODE_NAMES[NUM_DISP_MODES];
 extern const char* const INTONATION_MODE_NAMES[NUM_INTONATIONS];
 extern const char* const BEND_DELAY_MODE_NAMES[4];
-extern const char* const PATTERN_NAMES[8];
+extern const char* const PATTERN_NAMES[NUM_PATTERNS];
 extern const char* const BEGIN_NAMES[8];
 extern const char* const INVERSION_NAMES[5];
+// The order in which the menu and the buttons step through the values (ids are kept stable for
+// saved patches). Taken from the position indicators in the manual's photos where visible.
+extern const int CV_MENU_ORDER[NUM_CV_FUNCS];
+extern const int IN_MENU_ORDER[NUM_IN_FUNCS];
+extern const int OUT_MENU_ORDER[NUM_OUT_FUNCS];
+extern const int AB_MENU_ORDER[NUM_AB_MODES];
+extern const int PATTERN_ORDER[NUM_PATTERNS];
+/** Position of an id in one of the order tables */
+int orderIndex(const int* order, int n, int id);
 // One step of the 16 bit output DAC of the original hardware (-2 V..8 V)
 static const float DAC_UNIT_V = 10.f / 65536.f;
 
+// Menu items in the order of the original (position indicators in the manual's photos)
 enum MenuItem {
-	MI_DISPLAY, MI_CV1, MI_CV2, MI_CV3, MI_CV4, MI_POT1, MI_POT2, MI_IN1, MI_IN2, MI_OUT1, MI_OUT2,
-	MI_CLOCK_DIV, MI_ARP_CLOCK, MI_ARP_DELAY, MI_CH1_AB, MI_CH2_BUTTONS, MI_TRIG_WINDOW,
-	MI_SLEW_CURVE, MI_INTONATION, MI_BEND_DELAY, MI_RESET,
+	MI_CV1, MI_CV2, MI_CV3, MI_CV4, MI_POT1, MI_POT2, MI_IN1, MI_IN2, MI_OUT1, MI_OUT2,
+	MI_CLOCK_DIV, MI_ARP_CLOCK, MI_INTONATION, MI_SLEW_CURVE, MI_TRIG_WINDOW, MI_ARP_DELAY, MI_BEND_DELAY,
+	MI_CH1_AB, MI_CH2_BUTTONS, MI_DISPLAY, MI_RESET,
 	NUM_MENU_ITEMS
 };
 
@@ -208,7 +230,7 @@ struct Pulse {
 
 /** Quantizer channel 1-3 runtime state */
 struct ChannelState {
-	float held = 0.f;
+	float held = 0.f;      // Sampled input in semitones (after semitone quantization and Pre Trans)
 	float trigWindow = 0.f;
 	int note = 0;          // Last quantized semitone (before shuffle)
 	int outFunc = -1;      // Function of the playing note, for the button lights
@@ -222,6 +244,8 @@ struct ChannelState {
 	Pulse autogate;
 	dsp::SchmittTrigger trig;
 };
+
+struct Screen;
 
 struct Harmonion : Module {
 	enum ParamId {
@@ -279,10 +303,13 @@ struct Harmonion : Module {
 	bool menuOpen = false;
 	int menuItem = 0;
 	bool resetArmed = false;
+	double resetDoneUntil = -1.0;
 	bool tuning = false;
 	int tuneOctave = 4;
 	bool calibrating = false;
 	int theme = 0;  // panel theme, see Theme.hpp
+	bool gate5V = false;  // gate level of the hardware instead of the VCV standard
+	double splashUntil = 2.0;  // start screen with the version
 	bool calib5V = false;
 	int calibLast = 0;
 	bool frozen = false;
@@ -365,11 +392,12 @@ struct Harmonion : Module {
 	bool bigHeld[NUM_BIG] = {};
 	bool comboUsed[NUM_BIG] = {};
 	dsp::BooleanTrigger smallTrig[12];
+	bool smallHeld[12] = {};
 	double lastPlayPress = -10.0;
 	float voltmeter = 0.f;
 	bool voltmeterActive = false;
-	// Short message on the display after PATTERN, BEGIN or INV changed
-	enum Popup { POPUP_NONE, POPUP_PATTERN, POPUP_BEGIN, POPUP_INV };
+	// Short message on the display after PATTERN, BEGIN, INV or the live mode changed
+	enum Popup { POPUP_NONE, POPUP_PATTERN, POPUP_BEGIN, POPUP_INV, POPUP_LIVE };
 	int popup = POPUP_NONE;
 	double popupUntil = 0.0;
 	void showPopup(int kind) {
@@ -409,6 +437,12 @@ struct Harmonion : Module {
 	void menuChange(int delta);
 	std::string menuTitle(int item);
 	std::string menuValue(int item);
+	/** Position of the current value among all values of a menu item, for the indicator */
+	int menuValuePos(int item, int* count);
+	void enterCalibration();
+	bool comboHeld(std::initializer_list<int> big, std::initializer_list<int> small);
+	/** Display content, see Screen.hpp */
+	void buildScreen(Screen& s);
 
 	void seqClock();
 	void seqBeat();
@@ -419,6 +453,7 @@ struct Harmonion : Module {
 
 	uint16_t applyHarmonicShift(uint16_t funcs);
 	uint16_t sectionFuncs(int sec, const Preset& p);
+	float mixedInput(int sec);
 	float inputFor(int sec);
 	float followShift(int sec);
 	float postProcess(int out, float semis, int sec, bool slewOn, float dt);
@@ -435,6 +470,9 @@ struct Harmonion : Module {
 
 	float potVoltage(int func, float pot);
 	bool isBipolar(int func);
+	float gateV() const {
+		return gate5V ? 5.f : 10.f;
+	}
 };
 
 }  // namespace hm
