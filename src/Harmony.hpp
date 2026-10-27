@@ -18,7 +18,9 @@ static const int NUM_TONES = 7;
 
 struct Scale {
 	const char* simple;  // Name used in the "Chords" mode, e.g. "lyd"
-	const char* jazz;    // Name used in all other modes, e.g. "maj7#11"
+	// Name used in all other modes, in the jazz notation of the original: "-" minor, "△" major
+	// seventh, "b" flat (drawn as ♭ on the display), e.g. "△7#11"
+	const char* jazz;
 	// Semitone offsets from the chord root for each chord tone, -1 = unused.
 	// A tone can select two notes (diminished and half-whole scales).
 	int8_t tone[NUM_TONES][2];
@@ -56,9 +58,16 @@ struct Harmony {
 	uint16_t pitchMask(uint16_t funcMask) const;
 	/** Function that a pitch class belongs to, -1 if none */
 	int funcOfPitch(int pc) const;
+	/** Chord symbol: root (for slash chords the triad root) plus suffix, e.g. "E" + "b-△7" */
 	std::string chordName() const;
+	std::string chordRootName() const;
+	std::string chordSuffix() const;
 	std::string modeName() const;
+	/** Scale notes in button order ROOT 9TH 3RD 11TH 5TH 13TH 7TH */
+	std::vector<std::string> scaleToneNames() const;
 	std::string scaleTones() const;
+	/** Semitones of the scale relative to the chord root */
+	uint16_t scaleMask() const;
 	std::string scaleStructure() const;
 };
 

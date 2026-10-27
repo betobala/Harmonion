@@ -19,14 +19,52 @@ void Harmonion::handleButtons() {
 		}
 	}
 	for (int i = 0; i < 12; i++) {
-		if (smallTrig[i].process(params[MENU_PARAM + i].getValue() > 0.f))
+		bool down = params[MENU_PARAM + i].getValue() > 0.f;
+		smallHeld[i] = down;
+		if (smallTrig[i].process(down))
 			pressSmall(i);
 	}
+}
+
+enum SmallBtn { SB_MENU, SB_TUNE, SB_SONG, SB_OCT, SB_SEQ, SB_LEFT, SB_RIGHT, SB_PLAY, SB_DEL, SB_MINUS, SB_PLUS, SB_ADD };
+
+bool Harmonion::comboHeld(std::initializer_list<int> big, std::initializer_list<int> small) {
+	for (int b : big)
+		if (!bigHeld[b])
+			return false;
+	for (int i : small)
+		if (!smallHeld[i])
+			return false;
+	return true;
+}
+
+void Harmonion::enterCalibration() {
+	calibrating = true;
+	tuning = false;
+	menuOpen = false;
+}
+
+// The two hidden button combinations of the original
+static bool factoryResetCombo(Harmonion* m) {
+	return m->comboHeld({C3_TONE[T3], C3_TONE[T7], C3_TONE[T11], C3_EQDIST, ARP_BTN + AB_BEGIN}, {});
+}
+static bool calibrationCombo(Harmonion* m) {
+	return m->comboHeld({C1A_TONE[T3]}, {SB_TUNE, SB_LEFT});
 }
 
 void Harmonion::pressBig(int b) {
 	if (calibrating) {
 		pressCalib(b);
+		return;
+	}
+	if (factoryResetCombo(this)) {
+		factoryReset();
+		for (int k = 0; k < NUM_BIG; k++)
+			comboUsed[k] = true;
+		return;
+	}
+	if (calibrationCombo(this)) {
+		enterCalibration();
 		return;
 	}
 	switch (page) {
@@ -43,7 +81,7 @@ void Harmonion::releaseBig(int b) {
 	// PATTERN, BEGIN and INV step through their settings unless used as a shortcut
 	Preset& p = editPreset();
 	if (b == ARP_BTN + AB_PATTERN) {
-		p.pattern = (p.pattern + 1) % 8;
+		p.pattern = PATTERN_ORDER[(orderIndex(PATTERN_ORDER, NUM_PATTERNS, p.pattern) + 1) % NUM_PATTERNS];
 		showPopup(POPUP_PATTERN);
 	}
 	else if (b == ARP_BTN + AB_BEGIN) {
@@ -63,7 +101,7 @@ void Harmonion::pressMain(int b) {
 		int k = b - ARP_BTN;
 		if (bigHeld[ARP_BTN + AB_PATTERN] && k != AB_PATTERN) {
 			comboUsed[ARP_BTN + AB_PATTERN] = true;
-			p.pattern = (k == AB_BEGIN) ? 7 : k;
+			p.pattern = PATTERN_ORDER[(k == AB_BEGIN) ? 7 : k];
 			showPopup(POPUP_PATTERN);
 			return;
 		}
@@ -193,8 +231,10 @@ void Harmonion::pressSong(int b) {
 		p = 2;
 	else if (b == CHORD_BTN + CB_INV)
 		p = 3;
-	else if (b == ARP_BTN + AB_BEGIN)
+	else if (b == ARP_BTN + AB_BEGIN) {
 		settings.liveMode ^= true;
+		showPopup(POPUP_LIVE);
+	}
 	if (p < 0)
 		return;
 	// First press: switch at the end of the current part. Second press: switch now.
@@ -222,10 +262,15 @@ void Harmonion::pressCalib(int b) {
 void Harmonion::pressSmall(int i) {
 	enum { MENU, TUNE, SONG, OCT, SEQ, LEFT, RIGHT, PLAY, DEL, MINUS, PLUS, ADD };
 	if (calibrating) {
+		// The text of the manual switches 0 V / 5 V with TUNE, its diagram with SEQ
 		if (i == MENU)
 			calibrating = false;
-		else if (i == TUNE)
+		else if (i == TUNE || i == SEQ)
 			calib5V ^= true;
+		return;
+	}
+	if (calibrationCombo(this)) {
+		enterCalibration();
 		return;
 	}
 	switch (i) {
@@ -341,33 +386,40 @@ void Harmonion::pressSmall(int i) {
 	}
 }
 
+// Next id in a menu order table
+static int stepOrder(const int* order, int n, int id, int d) {
+	return order[wrap(orderIndex(order, n, id) + d, n)];
+}
+
 void Harmonion::menuChange(int d) {
+	if (menuItem != MI_RESET)
+		resetArmed = false;
 	switch (menuItem) {
 		case MI_DISPLAY: settings.display = wrap(settings.display + d, NUM_DISP_MODES); break;
 		case MI_CV1: case MI_CV2: case MI_CV3: case MI_CV4: {
 			int& f = settings.cvFunc[menuItem - MI_CV1];
-			f = wrap(f + d, NUM_CV_FUNCS);
+			f = stepOrder(CV_MENU_ORDER, NUM_CV_FUNCS, f, d);
 		} break;
 		case MI_POT1: case MI_POT2: {
 			int k = menuItem - MI_POT1;
 			int& f = settings.potFunc[k];
 			// Pots cannot act as voltmeter, and both pots cannot share a function
 			do {
-				f = wrap(f + d, NUM_CV_FUNCS);
+				f = stepOrder(CV_MENU_ORDER, NUM_CV_FUNCS, f, d);
 			} while (f == CV_VOLTMETER || (f != CV_NONE && f == settings.potFunc[1 - k]));
 		} break;
 		case MI_IN1: case MI_IN2: {
 			int k = menuItem - MI_IN1;
 			int& f = settings.inFunc[k];
 			do {
-				f = wrap(f + d, NUM_IN_FUNCS);
+				f = stepOrder(IN_MENU_ORDER, NUM_IN_FUNCS, f, d);
 			} while (k == 1 && f == IN_SYNC_SLAVE);
 		} break;
 		case MI_OUT1: case MI_OUT2: {
 			int k = menuItem - MI_OUT1;
 			int& f = settings.outFunc[k];
 			do {
-				f = wrap(f + d, NUM_OUT_FUNCS);
+				f = stepOrder(OUT_MENU_ORDER, NUM_OUT_FUNCS, f, d);
 			} while (k == 1 && f == OUT_SYNC_MASTER);
 		} break;
 		case MI_CLOCK_DIV:
@@ -376,13 +428,13 @@ void Harmonion::menuChange(int d) {
 			else
 				settings.nonSeqClockDiv = clamp(settings.nonSeqClockDiv + d, 0, NUM_CLOCK_DIVS - 1);
 			break;
-		case MI_ARP_CLOCK: settings.arpClock = clamp(settings.arpClock + d, 0, 15); break;
-		case MI_ARP_DELAY: settings.arpDelayMs = clamp(settings.arpDelayMs + d, 0, 20); break;
-		case MI_CH1_AB: settings.abMode = wrap(settings.abMode + d, NUM_AB_MODES); break;
-		case MI_CH2_BUTTONS: settings.ch2Single ^= true; break;
-		case MI_TRIG_WINDOW: settings.trigWindowMs = clamp(settings.trigWindowMs + d, 0, 20); break;
-		case MI_SLEW_CURVE: settings.slewExp ^= true; break;
-		case MI_INTONATION: settings.intonation = wrap(settings.intonation + d, NUM_INTONATIONS); break;
+		case MI_ARP_CLOCK: settings.arpClock = clamp(settings.arpClock + d, 0, NUM_ARP_RATIOS - 1); break;
+		case MI_ARP_DELAY: settings.arpDelayMs = clamp(settings.arpDelayMs + d, 0, MAX_ARP_DELAY_MS); break;
+		case MI_CH1_AB: settings.abMode = stepOrder(AB_MENU_ORDER, NUM_AB_MODES, settings.abMode, d); break;
+		case MI_CH2_BUTTONS: settings.ch2Single = d > 0; break;
+		case MI_TRIG_WINDOW: settings.trigWindowMs = clamp(settings.trigWindowMs + d, 0, MAX_TRIG_WINDOW_MS); break;
+		case MI_SLEW_CURVE: settings.slewExp = d > 0; break;
+		case MI_INTONATION: settings.intonation = clamp(settings.intonation + d, 0, NUM_INTONATIONS - 1); break;
 		case MI_BEND_DELAY: settings.bendDelay = clamp(settings.bendDelay + d, 0, 3); break;
 		case MI_RESET:
 			// Needs + two times in a row
@@ -390,6 +442,7 @@ void Harmonion::menuChange(int d) {
 				if (resetArmed) {
 					resetSettings();
 					resetArmed = false;
+					resetDoneUntil = time + 1.5;
 				}
 				else {
 					resetArmed = true;
@@ -404,20 +457,27 @@ void Harmonion::menuChange(int d) {
 
 std::string Harmonion::menuTitle(int item) {
 	static const char* const titles[NUM_MENU_ITEMS] = {
-		"Display", "CV 1", "CV 2", "CV 3", "CV 4", "Pot 1", "Pot 2", "In 1", "In 2", "Out 1", "Out 2",
-		"Clock Divider", "Arpeggio Clock", "Arp. Trigger Delay", "Channel 1 A/B", "Channel 2 Buttons",
-		"Trigger Time Window", "Slew Curve", "Intonation", "Pitch Bend Delay", "Reset To Defaults",
+		"CV 1", "CV 2", "CV 3", "CV 4", "Pot 1", "Pot 2", "In 1", "In 2", "Out 1", "Out 2",
+		"Clock Divider", "Arpeggio Clock", "Intonation", "Slew Curve", "Trigger Time Window",
+		"Arp. Trigger Delay", "Pitch Bend Delay", "Channel 1 A/B", "Channel 2 Buttons", "Display",
+		"Reset To Defaults",
 	};
 	return titles[clamp(item, 0, NUM_MENU_ITEMS - 1)];
 }
 
+static std::string funcName(const char* const* names, int n, int f) {
+	if (f <= 0 || f >= n)
+		return "(not assigned)";
+	return names[f];
+}
+
 std::string Harmonion::menuValue(int item) {
 	switch (item) {
-		case MI_DISPLAY: return DISPLAY_MODE_NAMES[settings.display];
-		case MI_CV1: case MI_CV2: case MI_CV3: case MI_CV4: return CV_FUNC_NAMES[settings.cvFunc[item - MI_CV1]];
-		case MI_POT1: case MI_POT2: return CV_FUNC_NAMES[settings.potFunc[item - MI_POT1]];
-		case MI_IN1: case MI_IN2: return IN_FUNC_NAMES[settings.inFunc[item - MI_IN1]];
-		case MI_OUT1: case MI_OUT2: return OUT_FUNC_NAMES[settings.outFunc[item - MI_OUT1]];
+		case MI_DISPLAY: return DISPLAY_MODE_NAMES[clamp(settings.display, 0, NUM_DISP_MODES - 1)];
+		case MI_CV1: case MI_CV2: case MI_CV3: case MI_CV4: return funcName(CV_FUNC_NAMES, NUM_CV_FUNCS, settings.cvFunc[item - MI_CV1]);
+		case MI_POT1: case MI_POT2: return funcName(CV_FUNC_NAMES, NUM_CV_FUNCS, settings.potFunc[item - MI_POT1]);
+		case MI_IN1: case MI_IN2: return funcName(IN_FUNC_NAMES, NUM_IN_FUNCS, settings.inFunc[item - MI_IN1]);
+		case MI_OUT1: case MI_OUT2: return funcName(OUT_FUNC_NAMES, NUM_OUT_FUNCS, settings.outFunc[item - MI_OUT1]);
 		case MI_CLOCK_DIV:
 			if (seqMode)
 				return string::f("%d (for %d%c)", CLOCK_DIVS[currentPart().clockDiv], song + 1, 'A' + part);
@@ -431,15 +491,58 @@ std::string Harmonion::menuValue(int item) {
 			return s;
 		}
 		case MI_ARP_DELAY: return string::f("%d ms", settings.arpDelayMs);
-		case MI_CH1_AB: return AB_MODE_NAMES[settings.abMode];
+		case MI_CH1_AB: return AB_MODE_NAMES[clamp(settings.abMode, 0, NUM_AB_MODES - 1)];
 		case MI_CH2_BUTTONS: return settings.ch2Single ? "Single Note" : "Normal";
 		case MI_TRIG_WINDOW: return string::f("%d ms", settings.trigWindowMs);
 		case MI_SLEW_CURVE: return settings.slewExp ? "Exponential" : "Linear";
-		case MI_INTONATION: return INTONATION_MODE_NAMES[settings.intonation];
-		case MI_BEND_DELAY: return BEND_DELAY_MODE_NAMES[settings.bendDelay];
-		case MI_RESET: return resetArmed ? "Press + again!" : "Press + twice";
+		case MI_INTONATION: return INTONATION_MODE_NAMES[clamp(settings.intonation, 0, NUM_INTONATIONS - 1)];
+		case MI_BEND_DELAY: return BEND_DELAY_MODE_NAMES[clamp(settings.bendDelay, 0, 3)];
+		case MI_RESET:
+			if (time < resetDoneUntil)
+				return "done";
+			return resetArmed ? "press + again" : "press + to reset";
 	}
 	return "";
+}
+
+int Harmonion::menuValuePos(int item, int* count) {
+	int n = 1, pos = 0;
+	switch (item) {
+		case MI_CV1: case MI_CV2: case MI_CV3: case MI_CV4:
+			n = NUM_CV_FUNCS;
+			pos = orderIndex(CV_MENU_ORDER, n, settings.cvFunc[item - MI_CV1]);
+			break;
+		case MI_POT1: case MI_POT2:
+			n = NUM_CV_FUNCS;
+			pos = orderIndex(CV_MENU_ORDER, n, settings.potFunc[item - MI_POT1]);
+			break;
+		case MI_IN1: case MI_IN2:
+			// Sync Slave is the last value and only exists for IN 1
+			n = NUM_IN_FUNCS - (item == MI_IN2 ? 1 : 0);
+			pos = orderIndex(IN_MENU_ORDER, NUM_IN_FUNCS, settings.inFunc[item - MI_IN1]);
+			break;
+		case MI_OUT1: case MI_OUT2:
+			n = NUM_OUT_FUNCS - (item == MI_OUT2 ? 1 : 0);
+			pos = orderIndex(OUT_MENU_ORDER, NUM_OUT_FUNCS, settings.outFunc[item - MI_OUT1]);
+			break;
+		case MI_CLOCK_DIV:
+			n = NUM_CLOCK_DIVS;
+			pos = seqMode ? currentPart().clockDiv : settings.nonSeqClockDiv;
+			break;
+		case MI_ARP_CLOCK: n = NUM_ARP_RATIOS; pos = settings.arpClock; break;
+		case MI_INTONATION: n = NUM_INTONATIONS; pos = settings.intonation; break;
+		case MI_SLEW_CURVE: n = 2; pos = settings.slewExp; break;
+		case MI_TRIG_WINDOW: n = MAX_TRIG_WINDOW_MS + 1; pos = settings.trigWindowMs; break;
+		case MI_ARP_DELAY: n = MAX_ARP_DELAY_MS + 1; pos = settings.arpDelayMs; break;
+		case MI_BEND_DELAY: n = 4; pos = settings.bendDelay; break;
+		case MI_CH1_AB: n = NUM_AB_MODES; pos = orderIndex(AB_MENU_ORDER, n, settings.abMode); break;
+		case MI_CH2_BUTTONS: n = 2; pos = settings.ch2Single; break;
+		case MI_DISPLAY: n = NUM_DISP_MODES; pos = settings.display; break;
+		case MI_RESET: n = 3; pos = (time < resetDoneUntil) ? 2 : resetArmed ? 1 : 0; break;
+	}
+	if (count)
+		*count = n;
+	return clamp(pos, 0, n - 1);
 }
 
 void Harmonion::updateLights() {

@@ -68,55 +68,57 @@ enum ScaleId {
 const std::vector<Scale>& scales() {
 	static const std::vector<Scale> s = [] {
 		std::vector<Scale> v;
-		v.push_back(diatonic("lyd", "maj7#11", {0, 2, 4, 6, 7, 9, 11}));
-		v.push_back(diatonic("maj", "maj7", {0, 2, 4, 5, 7, 9, 11}));
+		v.push_back(diatonic("lyd", "△7#11", {0, 2, 4, 6, 7, 9, 11}));
+		v.push_back(diatonic("maj", "△7", {0, 2, 4, 5, 7, 9, 11}));
 		v.push_back(diatonic("7", "7", {0, 2, 4, 5, 7, 9, 10}));
 		// sus: mixolydian with 3RD and 11TH swapped
 		v.push_back(explicitScale("sus", "7sus4", 0, 5, 7, 10, 2, 4, 9));
-		// reconstruído: altered scale laid out as a dominant chord with #5
-		v.push_back(explicitScale("alt", "7alt", 0, 4, 8, 10, 1, 6, 3));
+		// Altered scale laid out as a dominant chord with #5: 11TH is the #9 and 13TH the b5, as the
+		// manual's display photos of C#alt and Falt show ("C# D F E A G B")
+		v.push_back(explicitScale("alt", "7alt", 0, 4, 8, 10, 1, 3, 6));
 		v.push_back(diatonic("hm5", "7b9b13", {0, 1, 4, 5, 7, 8, 10}));
-		v.push_back(diatonic("dor", "m7", {0, 2, 3, 5, 7, 9, 10}));
-		v.push_back(diatonic("min", "m7b13", {0, 2, 3, 5, 7, 8, 10}));
-		v.push_back(diatonic("hm", "m-maj7", {0, 2, 3, 5, 7, 8, 11}));
-		v.push_back(diatonic("phr", "m7b9", {0, 1, 3, 5, 7, 8, 10}));
+		v.push_back(diatonic("dor", "-7", {0, 2, 3, 5, 7, 9, 10}));
+		v.push_back(diatonic("min", "-7b13", {0, 2, 3, 5, 7, 8, 10}));
+		v.push_back(diatonic("hm", "-△7b13", {0, 2, 3, 5, 7, 8, 11}));
+		v.push_back(diatonic("phr", "-7b9", {0, 1, 3, 5, 7, 8, 10}));
 		// Diminished (whole-half): 13TH selects two notes
 		v.push_back(explicitScale("dim", "dim7", 0, 3, 6, 9, 2, 5, T(8, 11)));
 		// Augmented (whole tone): six notes, 13TH unused
 		v.push_back(explicitScale("aug", "7#5", 0, 4, 8, 10, 2, 6, -1));
 
+		// Mode "Chords2": the names are the manual's
 		v.push_back(diatonic("7#11", "7#11", {0, 2, 4, 6, 7, 9, 10}));
 		v.push_back(diatonic("7b13", "7b13", {0, 2, 4, 5, 7, 8, 10}));
-		v.push_back(explicitScale("sus4b9", "7sus4b9", 0, 5, 7, 10, 1, 4, 9));
+		v.push_back(explicitScale("sus4b9", "sus4b9", 0, 5, 7, 10, 1, 4, 9));
 		// Half-whole: 9TH selects b9 and #9
 		v.push_back(explicitScale("7#9", "7#9", 0, 4, 7, 10, T(1, 3), 6, 9));
-		v.push_back(diatonic("-maj7", "m-maj7", {0, 2, 3, 5, 7, 9, 11}));
-		v.push_back(diatonic("maj7#5", "maj7#5", {0, 2, 4, 6, 8, 9, 11}));
-		v.push_back(diatonic("-7b5", "m7b5", {0, 1, 3, 5, 6, 8, 10}));
+		v.push_back(diatonic("-△7", "-△7", {0, 2, 3, 5, 7, 9, 11}));
+		v.push_back(diatonic("△7#5#11", "△7#5#11", {0, 2, 4, 6, 8, 9, 11}));
+		v.push_back(diatonic("-7b5", "-7b5", {0, 1, 3, 5, 6, 8, 10}));
 
-		v.push_back(diatonic("dorb9", "m7b9", {0, 1, 3, 5, 7, 9, 10}));
-		v.push_back(diatonic("loc#2", "m9b5", {0, 2, 3, 5, 6, 8, 10}));
+		v.push_back(diatonic("dorb9", "-7b9", {0, 1, 3, 5, 7, 9, 10}));
+		v.push_back(diatonic("loc#2", "-9b5", {0, 2, 3, 5, 6, 8, 10}));
 
-		v.push_back(diatonic("loc6", "m7b5b9", {0, 1, 3, 5, 6, 9, 10}));
-		v.push_back(diatonic("ion#5", "maj7#5", {0, 2, 4, 5, 8, 9, 11}));
-		v.push_back(diatonic("dor#11", "m7#11", {0, 2, 3, 6, 7, 9, 10}));
-		v.push_back(diatonic("lyd#9", "maj7#9", {0, 3, 4, 6, 7, 9, 11}));
+		v.push_back(diatonic("loc6", "-7b5b9", {0, 1, 3, 5, 6, 9, 10}));
+		v.push_back(diatonic("ion#5", "△7#5", {0, 2, 4, 5, 8, 9, 11}));
+		v.push_back(diatonic("dor#11", "-7#11", {0, 2, 3, 6, 7, 9, 10}));
+		v.push_back(diatonic("lyd#9", "△7#9", {0, 3, 4, 6, 7, 9, 11}));
 		v.push_back(explicitScale("ultraloc", "dim7b9", 0, 3, 6, 9, 1, 4, 8));
 
-		v.push_back(diatonic("hmaj", "maj7b13", {0, 2, 4, 5, 7, 8, 11}));
-		v.push_back(diatonic("dorb5", "m7b5", {0, 2, 3, 5, 6, 9, 10}));
+		v.push_back(diatonic("hmaj", "△7b13", {0, 2, 4, 5, 7, 8, 11}));
+		v.push_back(diatonic("dorb5", "-7b5", {0, 2, 3, 5, 6, 9, 10}));
 		v.push_back(explicitScale("phrb4", "7b9#5", 0, 4, 8, 10, 1, 3, 5));
-		v.push_back(diatonic("lydb3", "m-maj7#11", {0, 2, 3, 6, 7, 9, 11}));
+		v.push_back(diatonic("lydb3", "-△7#11", {0, 2, 3, 6, 7, 9, 11}));
 		v.push_back(diatonic("mixb9", "7b9", {0, 1, 4, 5, 7, 9, 10}));
-		v.push_back(explicitScale("lydaug#9", "maj7#5#9", 0, 4, 8, 11, 3, 6, 9));
+		v.push_back(explicitScale("lydaug#9", "△7#5#9", 0, 4, 8, 11, 3, 6, 9));
 		v.push_back(diatonic("locbb7", "dim7b9", {0, 1, 3, 5, 6, 8, 9}));
 
-		v.push_back(diatonic("dhm", "maj7b9b13", {0, 1, 4, 5, 7, 8, 11}));
-		v.push_back(diatonic("lyd#2#6", "maj7#9#13", {0, 3, 4, 6, 7, 10, 11}));
-		v.push_back(diatonic("ultraphr", "m6b9", {0, 1, 3, 4, 7, 8, 9}));
-		v.push_back(diatonic("hungmin", "m-maj7#11", {0, 2, 3, 6, 7, 8, 11}));
+		v.push_back(diatonic("dhm", "△7b9b13", {0, 1, 4, 5, 7, 8, 11}));
+		v.push_back(diatonic("lyd#2#6", "△7#9#13", {0, 3, 4, 6, 7, 10, 11}));
+		v.push_back(diatonic("ultraphr", "-6b9", {0, 1, 3, 4, 7, 8, 9}));
+		v.push_back(diatonic("hungmin", "-△7#11", {0, 2, 3, 6, 7, 8, 11}));
 		v.push_back(explicitScale("oriental", "7b5b9", 0, 4, 6, 10, 1, 5, 9));
-		v.push_back(explicitScale("ion#2#5", "maj7#5#9", 0, 4, 8, 11, 3, 5, 9));
+		v.push_back(explicitScale("ion#2#5", "△7#5#9", 0, 4, 8, 11, 3, 5, 9));
 		v.push_back(diatonic("locbb3", "dim7b9", {0, 1, 2, 5, 6, 8, 9}));
 
 		// reconstruído: slash chords whose triad does not contain the bass
@@ -296,41 +298,58 @@ bool preferFlats(int chordRoot, const Scale& scale) {
 	return bestFlat;
 }
 
-std::string Harmony::chordName() const {
+std::string Harmony::chordRootName() const {
 	bool flat = preferFlats(chordRoot, *scale);
 	if (scale->slashRoot >= 0)
-		return noteName(chordRoot + scale->slashRoot, flat) + scale->slashQuality + "/" + noteName(chordRoot, flat);
-	const char* suffix = (mode == 0) ? scale->simple : scale->jazz;
-	return noteName(chordRoot, flat) + suffix;
+		return noteName(chordRoot + scale->slashRoot, flat);
+	return noteName(chordRoot, flat);
+}
+
+std::string Harmony::chordSuffix() const {
+	if (scale->slashRoot >= 0)
+		return std::string(scale->slashQuality) + "/" + noteName(chordRoot, preferFlats(chordRoot, *scale));
+	return (mode == 0) ? scale->simple : scale->jazz;
+}
+
+std::string Harmony::chordName() const {
+	return chordRootName() + chordSuffix();
 }
 
 std::string Harmony::modeName() const {
 	return modes()[mode].name;
 }
 
-std::string Harmony::scaleTones() const {
+std::vector<std::string> Harmony::scaleToneNames() const {
+	// Listed by button in the order of the scale steps (ROOT 9TH 3RD 11TH 5TH 13TH 7TH), not by pitch:
+	// the display of the original shows C#alt as "C# D F E A G B"
+	static const int slotOrder[NUM_TONES] = {T1, T9, T3, T11, T5, T13, T7};
 	bool flat = preferFlats(chordRoot, *scale);
-	std::vector<int> offs;
-	for (int f = 0; f < NUM_TONES; f++)
+	std::vector<std::string> names;
+	for (int f : slotOrder)
 		for (int k = 0; k < 2; k++)
 			if (scale->tone[f][k] >= 0)
-				offs.push_back(wrap(scale->tone[f][k], 12));
-	std::sort(offs.begin(), offs.end());
+				names.push_back(noteName(chordRoot + scale->tone[f][k], flat));
+	return names;
+}
+
+std::string Harmony::scaleTones() const {
 	std::string s;
-	for (int o : offs) {
-		if (!s.empty())
-			s += " ";
-		s += noteName(chordRoot + o, flat);
-	}
+	for (const std::string& n : scaleToneNames())
+		s += (s.empty() ? "" : " ") + n;
 	return s;
 }
 
-std::string Harmony::scaleStructure() const {
+uint16_t Harmony::scaleMask() const {
 	uint16_t m = 0;
 	for (int f = 0; f < NUM_TONES; f++)
 		for (int k = 0; k < 2; k++)
 			if (scale->tone[f][k] >= 0)
 				m |= 1 << wrap(scale->tone[f][k], 12);
+	return m;
+}
+
+std::string Harmony::scaleStructure() const {
+	uint16_t m = scaleMask();
 	std::string s;
 	for (int o = 0; o <= 12; o++)
 		s += (m & (1 << (o % 12))) ? "o" : "~";

@@ -3,7 +3,7 @@
 namespace hm {
 
 const char* const CV_FUNC_NAMES[NUM_CV_FUNCS] = {
-	"None", "Transpose", "Chaotic Note Shuffle", "Chaotic Detune", "Harmonic Shift", "Button Preset",
+	"None", "Transpose", "Chaotic Note Shuffle", "Chaotic detune", "Harmonic Shift", "Button Preset",
 	"Slew Time", "Voltmeter", "Root", "Degree", "Mode", "Chan 1 Pre Trans", "Chan 2 Pre Trans",
 	"Chan 3 Pre Trans", "Arpeggio Pre Trans", "Chan 1 Pitch Bend", "Chan 2 Pitch Bend", "Chan 3 Pitch Bend",
 	"Chords Pitch Bend", "Chords Spread", "Chords Voicing", "Arpeggio Clock", "Arpeggio Randomize",
@@ -16,28 +16,79 @@ const char* const IN_FUNC_NAMES[NUM_IN_FUNCS] = {
 	"Seq. Part Forward", "Seq. Part Backward", "Tuning Mode", "Seq. Play/Pause",
 };
 const char* const OUT_FUNC_NAMES[NUM_OUT_FUNCS] = {
-	"None", "Sync Master", "Autogate Ch 1", "Autogate Ch 2", "Autogate Ch 3", "Ch 2 Manual Gate",
+	"None", "Sync Master", "Chan 1 Autogate", "Chan 2 Autogate", "Chan 3 Autogate", "Ch 2 Manual Gate",
 	"Arpeggio Beat", "Sequencer Clock", "Sequencer Beat", "Song Step", "Song Reset",
 	"Tuning Mode Active", "Ch 1 A/B State", "Chord Change",
 };
 const char* const AB_MODE_NAMES[NUM_AB_MODES] = {
-	"Off (A only)", "via jack A/B", "B on beat 1", "B each odd beat", "B each even beat",
-	"B on 1st beat of step", "B on clock 1", "B each odd clock",
+	"Off (always A)", "via Jack A/B", "B on Beat 1", "Each Odd Beat", "Each Even Beat",
+	"B on 1st Beat of Step", "B on Clock 1", "Each Odd Clock", "Each Even Clock",
 };
 const char* const DISPLAY_MODE_NAMES[NUM_DISP_MODES] = {"Scale Tones", "Scale Structure", "Chord Structure", "Octave Switches"};
-const char* const INTONATION_MODE_NAMES[NUM_INTONATIONS] = {"Equal", "Just", "1/4 Meantone"};
+const char* const INTONATION_MODE_NAMES[NUM_INTONATIONS] = {"Equal", "Just", "Quart. C. Meantone"};
 const char* const BEND_DELAY_MODE_NAMES[4] = {"None", "Short", "Medium", "Long"};
-const char* const PATTERN_NAMES[8] = {"Up", "Down", "Up/Down", "Down/Up", "Baroque", "Octaves", "Brownian", "Random"};
+const char* const PATTERN_NAMES[NUM_PATTERNS] = {"Up", "Down", "Up/Down", "Down/Up", "Baroque", "Octaves", "Brownian", "Random"};
 // BEGIN: index 0 is "Next Note" (-1), then the seven tones
 const char* const BEGIN_NAMES[8] = {"Next Note", "Root", "3rd", "5th", "7th", "9th", "11th", "13th"};
 const char* const INVERSION_NAMES[5] = {"Free", "Root position", "1st inversion", "2nd inversion", "3rd inversion"};
+
+// Fixed by the photos: "(not assigned)" first, Harmonic Shift 6th, Chaotic detune 7th.
+// reconstruído: the order of the others
+const int CV_MENU_ORDER[NUM_CV_FUNCS] = {
+	CV_NONE, CV_ROOT, CV_DEGREE, CV_MODE, CV_TRANSPOSE, CV_HARMONIC_SHIFT, CV_DETUNE, CV_SHUFFLE, CV_PRESET,
+	CV_SLEW_TIME, CV_VOLTMETER, CV_PRE_CH1, CV_PRE_CH2, CV_PRE_CH3, CV_BEND_CH1, CV_BEND_CH2, CV_BEND_CH3,
+	CV_BEND_CHORDS, CV_SPREAD, CV_VOICING, CV_PRE_ARP, CV_ARP_CLOCK, CV_ARP_RANDOM, CV_ARP_RANGE,
+	CV_SONG, CV_PART, CV_SONG_PART, CV_STEP,
+};
+// Fixed by the photos: Chan 2 Slew 10th, Sync Slave last. reconstruído: the others
+const int IN_MENU_ORDER[NUM_IN_FUNCS] = {
+	IN_NONE, IN_SONG_RESET, IN_PART_RESET, IN_STEP_FWD, IN_STEP_BACK, IN_PART_FWD, IN_PART_BACK, IN_PLAY,
+	IN_SLEW_CH1, IN_SLEW_CH2, IN_SLEW_CH3, IN_SLEW_CHORDS, IN_QUANT_CH1, IN_QUANT_CH2, IN_QUANT_CH3,
+	IN_QUANT_CHORDS, IN_CHORDS_SHUFFLE, IN_ARP_RESET, IN_TUNING, IN_SYNC_SLAVE,
+};
+// Fixed by the photos: Chan 1 Autogate 6th, Sync Master last. reconstruído: the others
+const int OUT_MENU_ORDER[NUM_OUT_FUNCS] = {
+	OUT_NONE, OUT_SEQ_CLOCK, OUT_SEQ_BEAT, OUT_SONG_STEP, OUT_SONG_RESET, OUT_AUTOGATE_CH1, OUT_AUTOGATE_CH2,
+	OUT_AUTOGATE_CH3, OUT_CH2_MANUAL_GATE, OUT_ARP_BEAT, OUT_TUNING, OUT_CH1_AB, OUT_CHORD_CHANGE, OUT_SYNC_MASTER,
+};
+// Fixed by the photos: nine settings, "Each Odd Beat" 3rd. reconstruído: the others
+const int AB_MENU_ORDER[NUM_AB_MODES] = {
+	AB_OFF, AB_BEAT1, AB_ODD_BEATS, AB_EVEN_BEATS, AB_STEP_START, AB_CLOCK1, AB_ODD_CLOCKS, AB_EVEN_CLOCKS, AB_JACK,
+};
+// Order of the eight pattern screens in the manual (page 43)
+const int PATTERN_ORDER[NUM_PATTERNS] = {
+	PAT_UP, PAT_DOWN, PAT_UPDOWN, PAT_DOWNUP, PAT_OCTAVES, PAT_BAROQUE, PAT_RANDOM, PAT_BROWNIAN,
+};
+
+int orderIndex(const int* order, int n, int id) {
+	for (int i = 0; i < n; i++)
+		if (order[i] == id)
+			return i;
+	return 0;
+}
+
+// Ratio list of version 1 patches, to convert their saved index
+static const int OLD_ARP_RATIO[16][2] = {{1, 4}, {1, 3}, {2, 5}, {1, 2}, {2, 3}, {3, 4}, {1, 1}, {5, 4},
+	{4, 3}, {3, 2}, {5, 3}, {2, 1}, {5, 2}, {3, 1}, {7, 2}, {4, 1}};
+
+static int nearestArpRatio(float r) {
+	int best = ARP_RATIO_UNITY;
+	float bestD = 1e9f;
+	for (int i = 0; i < NUM_ARP_RATIOS; i++) {
+		float d = std::fabs(std::log((float) ARP_RATIO[i][0] / ARP_RATIO[i][1]) - std::log(r));
+		if (d < bestD - 1e-6f) {
+			bestD = d;
+			best = i;
+		}
+	}
+	return best;
+}
 static const float BEND_DELAY_SEC[4] = {0.f, 0.5f, 1.f, 2.f};
 static const float IN_SCALE_DIV[4] = {1.f, 2.f, 3.f, 5.f};
 static const float DETUNE_FACTOR[8] = {1.f, -0.8f, 0.6f, -1.f, 0.9f, -0.5f, 0.3f, -0.7f};
 static const int SHUFFLE_SWAPS[6][2] = {{0, 7}, {2, 9}, {4, 11}, {5, 1}, {10, 3}, {8, 6}};
 static const uint16_t FILLS = 0x1F << FILL1;
 static const uint16_t TONES = 0x7F;
-static const float GATE_V = 10.f;
 
 
 // Output index of the eight pitch outputs: Ch1-3, Arpeggio, Chords 1-4
@@ -147,6 +198,8 @@ json_t* Settings::toJson() const {
 	json_object_set_new(j, "outFunc", intArray(outFunc, 2));
 	json_object_set_new(j, "nonSeqClockDiv", json_integer(nonSeqClockDiv));
 	json_object_set_new(j, "arpClock", json_integer(arpClock));
+	int ratio[2] = {ARP_RATIO[clamp(arpClock, 0, NUM_ARP_RATIOS - 1)][0], ARP_RATIO[clamp(arpClock, 0, NUM_ARP_RATIOS - 1)][1]};
+	json_object_set_new(j, "arpClockRatio", intArray(ratio, 2));
 	json_object_set_new(j, "arpDelayMs", json_integer(arpDelayMs));
 	json_object_set_new(j, "abMode", json_integer(abMode));
 	json_object_set_new(j, "ch2Single", json_boolean(ch2Single));
@@ -180,11 +233,21 @@ void Settings::fromJson(json_t* j) {
 	readIntArray(json_object_get(j, "inFunc"), inFunc, 2);
 	readIntArray(json_object_get(j, "outFunc"), outFunc, 2);
 	nonSeqClockDiv = jint(j, "nonSeqClockDiv", nonSeqClockDiv);
-	arpClock = jint(j, "arpClock", arpClock);
-	arpDelayMs = jint(j, "arpDelayMs", arpDelayMs);
-	abMode = jint(j, "abMode", abMode);
+	json_t* ratio = json_object_get(j, "arpClockRatio");
+	if (ratio) {
+		int r[2] = {1, 1};
+		readIntArray(ratio, r, 2);
+		arpClock = nearestArpRatio((float) std::max(r[0], 1) / std::max(r[1], 1));
+	}
+	else if (json_object_get(j, "arpClock")) {
+		// Patches of version 1 saved an index into a slightly different list
+		int old = clamp(jint(j, "arpClock", 6), 0, 15);
+		arpClock = nearestArpRatio((float) OLD_ARP_RATIO[old][0] / OLD_ARP_RATIO[old][1]);
+	}
+	arpDelayMs = clamp(jint(j, "arpDelayMs", arpDelayMs), 0, MAX_ARP_DELAY_MS);
+	abMode = clamp(jint(j, "abMode", abMode), 0, NUM_AB_MODES - 1);
 	ch2Single = jbool(j, "ch2Single", ch2Single);
-	trigWindowMs = jint(j, "trigWindowMs", trigWindowMs);
+	trigWindowMs = clamp(jint(j, "trigWindowMs", trigWindowMs), 0, MAX_TRIG_WINDOW_MS);
 	slewExp = jbool(j, "slewExp", slewExp);
 	intonation = jint(j, "intonation", intonation);
 	bendDelay = jint(j, "bendDelay", bendDelay);
@@ -671,30 +734,36 @@ float Harmonion::followShift(int sec) {
 	return shift / 12.f;
 }
 
-float Harmonion::inputFor(int sec) {
+// Pitch after the input scaling and the input mixing matrix (the start of the manual's flow chart)
+float Harmonion::mixedInput(int sec) {
+	if (sec == SEC_CHORDS)
+		return inputs[CHORD_IN_INPUT].getVoltage() / IN_SCALE_DIV[clamp(settings.inScale[SEC_CHORDS], 0, 3)];
+	// Each IN jack is scaled by the setting of its own section before it enters the matrix.
+	// Rows are channels 1-3 and arpeggio, columns are the IN jacks.
+	static const int jack[4] = {CH_IN_INPUT + 0, CH_IN_INPUT + 1, CH_IN_INPUT + 2, ARP_IN_INPUT};
+	static const int jackSec[4] = {SEC_CH1, SEC_CH2, SEC_CH3, SEC_ARP};
+	int row = (sec == SEC_ARP) ? 3 : sec;
 	float v = 0.f;
-	if (sec == SEC_CHORDS) {
-		v = inputs[CHORD_IN_INPUT].getVoltage();
-	}
-	else {
-		// Input mixing matrix: rows are channels 1-3 and arpeggio, columns are the IN jacks
-		int row = (sec == SEC_ARP) ? 3 : sec;
-		static const int jack[4] = {CH_IN_INPUT + 0, CH_IN_INPUT + 1, CH_IN_INPUT + 2, ARP_IN_INPUT};
-		int n = 0;
-		for (int j = 0; j < 4; j++) {
-			if (settings.inMix[row][j]) {
-				v += inputs[jack[j]].getVoltage();
-				n++;
-			}
+	int n = 0;
+	for (int j = 0; j < 4; j++) {
+		if (settings.inMix[row][j]) {
+			v += inputs[jack[j]].getVoltage() / IN_SCALE_DIV[clamp(settings.inScale[jackSec[j]], 0, 3)];
+			n++;
 		}
-		if (n > 1)
-			v -= 2.f * (n - 1);
 	}
-	v /= IN_SCALE_DIV[clamp(settings.inScale[sec], 0, 3)];
+	// Every additional jack subtracts two octaves, so C3 + C3 is C4
+	if (n > 1)
+		v -= 2.f * (n - 1);
+	return v;
+}
+
+// Input pitch of the chords and the arpeggio: mixed input, IN follows ROOT and Pre Trans
+float Harmonion::inputFor(int sec) {
+	float v = mixedInput(sec) + followShift(sec);
 	static const int pre[NUM_SECTIONS] = {CV_PRE_CH1, CV_PRE_CH2, CV_PRE_CH3, CV_NONE, CV_PRE_ARP};
 	if (pre[sec] != CV_NONE && funcActive[pre[sec]])
 		v += funcCv[pre[sec]];
-	return v + followShift(sec);
+	return v;
 }
 
 float Harmonion::toVolts(int n) {
@@ -776,16 +845,12 @@ static int funcOfPitchIn(const Harmony& h, int n, uint16_t funcs) {
 void Harmonion::processChannel(int c, float dt) {
 	ChannelState& s = ch[c];
 	const Preset& p = audiblePreset();
-	float in = inputFor(c);
-
-	// Sample & hold: with a cable in TRIG, the input is only read on triggers (plus time window)
-	bool trigConnected = inputs[CH_TRIG_INPUT + c].isConnected();
-	bool force = inFuncHigh[IN_QUANT_CH1 + c];
-	if (s.trig.process(inputs[CH_TRIG_INPUT + c].getVoltage(), 1.f, 3.f))
-		s.trigWindow = settings.trigWindowMs / 1000.f + 1e-6f;
-	if (!trigConnected || force || s.trigWindow > 0.f)
-		s.held = in;
-	s.trigWindow -= dt;
+	// Flow chart of the manual: input matrix -> IN follows ROOT -> quantize to semitone (or EQ-DIST)
+	// -> + Pre Trans -> sample & hold -> nearest allowed note
+	float raw = mixedInput(c);
+	float in = raw + followShift(c);
+	static const int pre[3] = {CV_PRE_CH1, CV_PRE_CH2, CV_PRE_CH3};
+	float preTrans = funcActive[pre[c]] ? funcCv[pre[c]] : 0.f;
 
 	// A/B switch of channel 1
 	if (c == 0) {
@@ -802,6 +867,7 @@ void Harmonion::processChannel(int c, float dt) {
 			case AB_STEP_START: s.usingB = seq ? beat == 0 : beatInBar % 4 == 0; break;
 			case AB_CLOCK1: s.usingB = clockPos == 0; break;
 			case AB_ODD_CLOCKS: s.usingB = clockPos % 2 == 0; break;
+			case AB_EVEN_CLOCKS: s.usingB = clockPos % 2 == 1; break;
 			default: s.usingB = false; break;
 		}
 	}
@@ -813,7 +879,7 @@ void Harmonion::processChannel(int c, float dt) {
 
 	// Glide detection: a moving input is passed through continuously
 	if (settings.glide[c]) {
-		if (std::fabs(s.held - s.lastIn) > 1e-5f) {
+		if (std::fabs(in - s.lastIn) > 1e-5f) {
 			s.moveTicks++;
 			s.stillTime = 0.f;
 		}
@@ -830,37 +896,57 @@ void Harmonion::processChannel(int c, float dt) {
 	else {
 		s.gliding = false;
 	}
-	s.lastIn = s.held;
+	s.lastIn = in;
 
 	int bypass = settings.bypass[c];
-	float v;
 	if (bypass == 2) {
-		pitchOut[c] = inputs[CH_IN_INPUT + c].getVoltage();
+		// True bypass: the pitch after the input matrix without any modification
+		pitchOut[c] = raw;
 		s.outFunc = -1;
 		return;
 	}
-	if (bypass == 1 || s.gliding) {
-		v = s.held;
+
+	// Quantize to semitone. EQ-DIST instead gives every allowed note the same share of the octave.
+	float t = in * 12.f;
+	float semi;
+	if (c == 2 && p.eqDist) {
+		int offs[12], cnt = 0;
+		for (int o = 0; o < 12; o++)
+			if (mask & (1 << wrap(harmony.chordRoot + o, 12)))
+				offs[cnt++] = o;
+		float x = t - harmony.chordRoot;
+		int oct = (int) std::floor(x / 12.f);
+		float frac = (x - 12.f * oct) / 12.f;
+		int idx = clamp((int) (frac * cnt), 0, cnt - 1);
+		semi = harmony.chordRoot + 12 * oct + offs[idx];
+	}
+	else {
+		semi = std::round(t);
+	}
+
+	// Sample & hold: with a cable in TRIG, the input is only read on triggers (plus time window).
+	// A bypassed channel ignores the trigger.
+	bool trigConnected = inputs[CH_TRIG_INPUT + c].isConnected() && bypass == 0;
+	bool force = inFuncHigh[IN_QUANT_CH1 + c];
+	if (s.trig.process(inputs[CH_TRIG_INPUT + c].getVoltage(), 1.f, 3.f))
+		s.trigWindow = settings.trigWindowMs / 1000.f + 1e-6f;
+	if (!trigConnected || force || s.trigWindow > 0.f)
+		s.held = semi + preTrans * 12.f;
+	s.trigWindow -= dt;
+
+	float v;
+	if (bypass == 1) {
+		// Bypass + Transpose: the continuous input including IN follows ROOT, then octave,
+		// transposition, slew, detune and pitch bend below
+		v = in;
+		s.outFunc = -1;
+	}
+	else if (s.gliding) {
+		v = in + preTrans;
 		s.outFunc = -1;
 	}
 	else {
-		float t = s.held * 12.f;
-		int n;
-		if (c == 2 && p.eqDist) {
-			// Equidistant: every allowed note gets the same share of the octave
-			int offs[12], cnt = 0;
-			for (int o = 0; o < 12; o++)
-				if (mask & (1 << wrap(harmony.chordRoot + o, 12)))
-					offs[cnt++] = o;
-			float x = t - harmony.chordRoot;
-			int oct = (int) std::floor(x / 12.f);
-			float frac = (x - 12.f * oct) / 12.f;
-			int idx = clamp((int) (frac * cnt), 0, cnt - 1);
-			n = harmony.chordRoot + 12 * oct + offs[idx];
-		}
-		else {
-			n = quantizeNearest(t, mask, s.note, s.hasNote);
-		}
+		int n = quantizeNearest(s.held, mask, s.note, s.hasNote);
 		int out = shuffleNote(n);
 		if (s.hasNote && n != s.note)
 			s.autogate.trigger();
@@ -946,32 +1032,39 @@ void Harmonion::processChords(float dt) {
 	for (int i = 1; i < 4; i++)
 		pitch[order[i]] = atOrAbove(pc[order[i]], pitch[order[i - 1]] + 1);
 
-	// Spread: widen the range between lowest and highest note, middle notes evenly in between
+	// Spread: notes except the lowest move up by octaves (manual 10.1), one step at a time the lowest
+	// of the upper notes, until the range between lowest and highest note is the closest to the close
+	// range plus the spread in semitones. This reproduces the manual's Chord Structure photo, where
+	// Cmaj7 in 2nd inversion spreads to G E B C ("5··3·71").
 	float spread = params[SPREAD_PARAM].getValue();
 	if (funcActive[CV_SPREAD])
 		spread *= clamp(funcCv[CV_SPREAD] / 5.f, 0.f, 1.f);
 	int s = (int) std::round(spread);
 	if (s > 0) {
-		int low = pitch[order[0]];
-		float range = (pitch[order[3]] - low) + s;
-		auto nearest = [&](int pcv, float target, int lo, int hi) {
-			int best = lo + 1;
-			float bestD = 1e9f;
-			for (int m = lo + 1; m < hi; m++) {
-				if (wrap(m, 12) != pcv)
-					continue;
-				float d = std::fabs(m - target);
-				if (d < bestD) {
-					bestD = d;
-					best = m;
-				}
+		int low = order[0];
+		int target = pitch[order[3]] - pitch[low] + s;
+		int cur[4], best[4];
+		for (int k = 0; k < 4; k++)
+			cur[k] = best[k] = pitch[k];
+		int bestErr = s;
+		for (int level = 0; level < 12; level++) {
+			int v = order[1];
+			for (int i = 2; i < 4; i++)
+				if (cur[order[i]] < cur[v])
+					v = order[i];
+			cur[v] += 12;
+			int top = std::max(cur[order[1]], std::max(cur[order[2]], cur[order[3]]));
+			int err = std::abs(top - cur[low] - target);
+			if (err < bestErr) {
+				bestErr = err;
+				for (int k = 0; k < 4; k++)
+					best[k] = cur[k];
 			}
-			return best;
-		};
-		int topNote = nearest(pc[order[3]], low + range, low, low + (int) range + 12);
-		pitch[order[3]] = topNote;
-		pitch[order[1]] = nearest(pc[order[1]], low + range / 3.f, low, topNote);
-		pitch[order[2]] = nearest(pc[order[2]], low + range * 2.f / 3.f, pitch[order[1]], topNote + 1);
+			if (top - cur[low] > target + 12)
+				break;
+		}
+		for (int k = 0; k < 4; k++)
+			pitch[k] = best[k];
 	}
 
 	if (bendFade < 1.f) {
@@ -999,8 +1092,6 @@ void Harmonion::chordsShuffle() {
 		m |= 1 << (rng() % NUM_TONES);
 	p.chords = m;
 }
-
-enum Pattern { PAT_UP, PAT_DOWN, PAT_UPDOWN, PAT_DOWNUP, PAT_BAROQUE, PAT_OCTAVES, PAT_BROWNIAN, PAT_RANDOM };
 
 void Harmonion::arpStep() {
 	outPulse[OUT_ARP_BEAT].trigger();
@@ -1333,21 +1424,21 @@ void Harmonion::processOutputs(float dt) {
 			o.setVoltage(harmony.degree, 2);
 			o.setVoltage(transSemis, 3);
 			o.setVoltage(funcActive[CV_DETUNE] ? funcCv[CV_DETUNE] : 0.f, 4);
-			o.setVoltage(outHigh[OUT_SEQ_CLOCK] ? GATE_V : 0.f, 5);
-			o.setVoltage(outHigh[OUT_SONG_RESET] ? GATE_V : 0.f, 6);
+			o.setVoltage(outHigh[OUT_SEQ_CLOCK] ? gateV() : 0.f, 5);
+			o.setVoltage(outHigh[OUT_SONG_RESET] ? gateV() : 0.f, 6);
 			o.setVoltage(o.getVoltage(7) > 0.f ? 0.f : 1.f, 7);
-			o.setVoltage(outHigh[OUT_SEQ_BEAT] ? GATE_V : 0.f, 8);
+			o.setVoltage(outHigh[OUT_SEQ_BEAT] ? gateV() : 0.f, 8);
 			for (int c = 9; c < 16; c++)
 				o.setVoltage(0.f, c);
 		}
 		else {
 			o.setChannels(1);
-			o.setVoltage((f > OUT_NONE && f < NUM_OUT_FUNCS && f != OUT_SYNC_MASTER && outHigh[f]) ? GATE_V : 0.f);
+			o.setVoltage((f > OUT_NONE && f < NUM_OUT_FUNCS && f != OUT_SYNC_MASTER && outHigh[f]) ? gateV() : 0.f);
 		}
 	}
 	const Preset& p = audiblePreset();
 	for (int i = 0; i < 2; i++)
-		outputs[GATE_OUTPUT + i].setVoltage(p.gate[i] ? GATE_V : 0.f);
+		outputs[GATE_OUTPUT + i].setVoltage(p.gate[i] ? gateV() : 0.f);
 }
 
 void Harmonion::tick(float dt) {
@@ -1488,6 +1579,8 @@ json_t* Harmonion::dataToJson() {
 			json_array_append_new(cal, json_real(calib[i][k]));
 	json_object_set_new(root, "calib", cal);
 	json_object_set_new(root, "theme", json_integer(theme));
+	json_object_set_new(root, "gate5V", json_boolean(gate5V));
+	json_object_set_new(root, "version", json_integer(2));
 	return root;
 }
 
@@ -1525,6 +1618,7 @@ void Harmonion::dataFromJson(json_t* root) {
 	for (int i = 0; cal && i < 16 && i < (int) json_array_size(cal); i++)
 		calib[i / 2][i % 2] = json_real_value(json_array_get(cal, i));
 	theme = clamp(jint(root, "theme", 0), 0, 1);
+	gate5V = jbool(root, "gate5V", false);
 	lastRootKnob = lastDegreeKnob = lastModeKnob = lastSongKnob = -1;
 	waitFirstClock = true;
 }
