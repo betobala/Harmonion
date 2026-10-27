@@ -107,13 +107,9 @@ void Harmonion::knobPopup(int id, std::string* title, std::string* value) {
 				break;
 			}
 			// With a CV on the same function the pot is a unipolar attenuator
-			bool atten = false;
-			for (int i = 0; i < 4; i++)
-				if (settings.cvFunc[i] == f && inputs[CV_INPUT + i].isConnected())
-					atten = true;
 			*title = CV_FUNC_NAMES[f];
-			if (atten)
-				*value = string::f("Pot %d: %d%% of CV", k + 1, (int) std::round(v * 100.f));
+			if (potAttenuates(k))
+				*value = string::f("Pot %d: %d%% (attenuate)", k + 1, (int) std::round(v * 100.f));
 			else if (isBipolar(f))
 				*value = string::f("Pot %d: %+d%%", k + 1, (int) std::round((v * 2.f - 1.f) * 100.f));
 			else

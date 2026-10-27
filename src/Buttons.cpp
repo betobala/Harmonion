@@ -498,7 +498,9 @@ std::string Harmonion::menuValue(int item) {
 	switch (item) {
 		case MI_DISPLAY: return DISPLAY_MODE_NAMES[clamp(settings.display, 0, NUM_DISP_MODES - 1)];
 		case MI_CV1: case MI_CV2: case MI_CV3: case MI_CV4: return funcName(CV_FUNC_NAMES, NUM_CV_FUNCS, settings.cvFunc[item - MI_CV1]);
-		case MI_POT1: case MI_POT2: return funcName(CV_FUNC_NAMES, NUM_CV_FUNCS, settings.potFunc[item - MI_POT1]);
+		case MI_POT1: case MI_POT2:
+			return funcName(CV_FUNC_NAMES, NUM_CV_FUNCS, settings.potFunc[item - MI_POT1]) +
+				(potAttenuates(item - MI_POT1) ? " (attenuate)" : "");
 		case MI_IN1: case MI_IN2: return funcName(IN_FUNC_NAMES, NUM_IN_FUNCS, settings.inFunc[item - MI_IN1]);
 		case MI_OUT1: case MI_OUT2: return funcName(OUT_FUNC_NAMES, NUM_OUT_FUNCS, settings.outFunc[item - MI_OUT1]);
 		case MI_CLOCK_DIV:

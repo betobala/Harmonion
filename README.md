@@ -15,7 +15,7 @@ Requer o Rack SDK 2.6 da sua plataforma em `dep/Rack-SDK`. No Windows, MSYS2 (MI
 make -j8 dist
 ```
 
-No Windows, copie `dist/Harmonion-2.1.2-win-x64.vcvplugin` para `%LOCALAPPDATA%\Rack2\plugins-win-x64\`
+No Windows, copie `dist/Harmonion-2.1.3-win-x64.vcvplugin` para `%LOCALAPPDATA%\Rack2\plugins-win-x64\`
 e reinicie o Rack.
 
 ## Testes
@@ -54,6 +54,8 @@ python3 tools/preview_display.py build/screens
   Arp BEGIN; TUNE + ← + Ch 1 3RD), mas exigem segurar vários botões, então também ficam no menu de contexto.
 - **Harmonic Link**: OUT 1 = "Sync Master" envia um cabo polifônico de 16 canais. IN 1 = "Sync Slave" recebe.
 - **Gates e triggers** saem com 10 V (padrão do VCV). O menu de contexto troca para os 5 V do hardware.
+- **CV sem cabo**: uma função atribuída a CV 1-4 sem cabo fica inativa (no hardware o jack lê 0 V). A exceção
+  é quando um POT tem a mesma função: aí o pot atenua o CV como no hardware, e sem cabo o resultado é 0.
 - **Display**: mesmo conteúdo e layout do OLED do original (conferidos com as fotos do manual), com a
   fonte e a cor do Harmonion. Além das telas do original, avisos curtos confirmam o que no hardware só
   muda uma luz: opções da página OCT, parte da música (A–D), play/pause/freeze, valor dos knobs SLEW,
