@@ -486,6 +486,8 @@ struct Harmonion : Module {
 	void chordsShuffle();
 
 	float potVoltage(int func, float pot);
+	/** True if a CV has the function of the pot, which then attenuates that CV */
+	bool potAttenuates(int k);
 	bool isBipolar(int func);
 	float gateV() const {
 		return gate5V ? 5.f : 10.f;

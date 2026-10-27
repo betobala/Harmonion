@@ -453,6 +453,16 @@ const Preset& Harmonion::audiblePreset() {
 	return editPreset();
 }
 
+bool Harmonion::potAttenuates(int k) {
+	int f = settings.potFunc[clamp(k, 0, 1)];
+	if (f <= CV_NONE || f >= NUM_CV_FUNCS)
+		return false;
+	for (int i = 0; i < 4; i++)
+		if (settings.cvFunc[i] == f)
+			return true;
+	return false;
+}
+
 bool Harmonion::isBipolar(int f) {
 	switch (f) {
 		case CV_TRANSPOSE: case CV_DETUNE: case CV_PRE_CH1: case CV_PRE_CH2: case CV_PRE_CH3: case CV_PRE_ARP:
@@ -1456,7 +1466,8 @@ void Harmonion::tick(float dt) {
 		funcActive[f] = false;
 		funcCv[f] = 0.f;
 	}
-	bool cvActive[NUM_CV_FUNCS] = {};
+	bool cvActive[NUM_CV_FUNCS] = {};    // assigned to a jack with a cable
+	bool cvAssigned[NUM_CV_FUNCS] = {};  // assigned to a jack, with or without cable
 	for (int i = 0; i < 4; i++) {
 		int f = settings.cvFunc[i];
 		if (f == CV_VOLTMETER) {
@@ -1464,7 +1475,10 @@ void Harmonion::tick(float dt) {
 			voltmeter = inputs[CV_INPUT + i].getVoltage();
 			continue;
 		}
-		if (f <= CV_NONE || f >= NUM_CV_FUNCS || !inputs[CV_INPUT + i].isConnected())
+		if (f <= CV_NONE || f >= NUM_CV_FUNCS)
+			continue;
+		cvAssigned[f] = true;
+		if (!inputs[CV_INPUT + i].isConnected())
 			continue;
 		cvActive[f] = true;
 		funcCv[f] += inputs[CV_INPUT + i].getVoltage();
@@ -1475,10 +1489,14 @@ void Harmonion::tick(float dt) {
 			if (settings.potFunc[i] == f)
 				pot = i;
 		float pv = (pot >= 0) ? params[POT1_PARAM + pot].getValue() : 0.f;
-		if (cvActive[f]) {
+		if (pot >= 0 && cvAssigned[f]) {
+			// The pot turns into an attenuator of the CV. Like the jacks of the original, which are
+			// normalled to 0 V, an unpatched jack gives 0.
 			funcActive[f] = true;
-			if (pot >= 0)
-				funcCv[f] *= pv;  // The pot turns into an attenuator
+			funcCv[f] *= pv;
+		}
+		else if (cvActive[f]) {
+			funcActive[f] = true;
 		}
 		else if (pot >= 0 && f != CV_VOLTMETER) {
 			funcActive[f] = true;
