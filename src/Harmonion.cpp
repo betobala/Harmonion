@@ -1665,7 +1665,7 @@ void Harmonion::dataFromJson(json_t* root) {
 	json_t* cal = json_object_get(root, "calib");
 	for (int i = 0; cal && i < 16 && i < (int) json_array_size(cal); i++)
 		calib[i / 2][i % 2] = json_real_value(json_array_get(cal, i));
-	theme = clamp(jint(root, "theme", 0), 0, 1);
+	theme = clamp(jint(root, "theme", 0), 0, 3);
 	gate5V = jbool(root, "gate5V", false);
 	lastRootKnob = lastDegreeKnob = lastModeKnob = lastSongKnob = -1;
 	waitFirstClock = true;

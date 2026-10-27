@@ -2,6 +2,7 @@
 #include "Screen.hpp"
 #include "Theme.hpp"
 #include "Controls.hpp"
+#define BB_MODULE_COLOUR nvgRGB(0x4A, 0x58, 0x66)
 #include "Stencil.hpp"
 
 namespace hm {
@@ -646,8 +647,8 @@ Model* modelHarmonion = createModel<hm::Harmonion, hm::HarmonionWidget>("Harmoni
 
 namespace ctl {
 const Colors& colors(const engine::Module* m) {
-	static const Colors black = bb::controlColors(0), white = bb::controlColors(1);
+	static const Colors themes[4] = {bb::controlColors(0), bb::controlColors(1), bb::controlColors(2), bb::controlColors(3)};
 	int t = m ? static_cast<const hm::Harmonion*>(m)->theme : 0;
-	return t == 1 ? white : black;
+	return themes[t < 0 || t > 3 ? 0 : t];
 }
 }  // namespace ctl
